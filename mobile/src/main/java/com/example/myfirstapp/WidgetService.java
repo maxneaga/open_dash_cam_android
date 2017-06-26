@@ -46,17 +46,18 @@ public class WidgetService extends Service {
         if (camWidget != null) windowManager.removeView(camWidget);
     }
 
+
     /**
      * Draws Camera widget on the screen and sets its onClick listener
      * Camera widget is the primary application widget
      */
     private void addCameraWidget() {
         camWidget = new ImageView(this);
-        camWidget.setImageResource(R.drawable.ic_cam_widget);
+        camWidget.setImageResource(R.drawable.cam_widget);
 
         // Set position on screen
         layoutParams.gravity = Gravity.CENTER_VERTICAL | Gravity.LEFT;
-        layoutParams.x = 10;
+        layoutParams.x = 0;
         layoutParams.y = 0;
 
         camWidget.setOnClickListener(new View.OnClickListener() {
@@ -85,7 +86,7 @@ public class WidgetService extends Service {
      */
     private void addSettingsWidget() {
         settingsWidget = new ImageView(this);
-        settingsWidget.setImageResource(R.drawable.ic_settings_widget);
+        settingsWidget.setImageResource(R.drawable.settings_widget);
 
         // Set position on screen
         layoutParams.gravity = Gravity.CENTER_VERTICAL | Gravity.LEFT;
@@ -111,12 +112,12 @@ public class WidgetService extends Service {
      */
     private void addQuitWidget() {
         quitWidget = new ImageView(this);
-        quitWidget.setImageResource(R.drawable.ic_quit_widget);
+        quitWidget.setImageResource(R.drawable.quit_widget);
 
         // Set position on screen
         layoutParams.gravity = Gravity.CENTER_VERTICAL | Gravity.LEFT;
         layoutParams.x = 16;
-        layoutParams.y = 300;
+        layoutParams.y = 290;
 
         // On touch, stop the service
         quitWidget.setOnClickListener(new View.OnClickListener() {
