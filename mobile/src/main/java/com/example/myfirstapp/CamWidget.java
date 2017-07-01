@@ -4,9 +4,18 @@ import android.app.Service;
 import android.view.View;
 import android.view.WindowManager;
 
+/**
+ * Camera is the primary widget that toggles the visibility of the other application widgets
+ */
 
 public class CamWidget extends Widget {
 
+    /**
+     *
+     * @param service Context service
+     * @param windowManager windowManager for the widget display
+     * @param togglableWidgets List of widgets to toggle visibility of when this widget is touched
+     */
     CamWidget(final Service service, WindowManager windowManager, final Widget[] togglableWidgets) {
         super(service, windowManager);
 
