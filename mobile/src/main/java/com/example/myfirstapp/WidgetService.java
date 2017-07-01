@@ -16,6 +16,8 @@ public class WidgetService extends Service {
 
     private CamWidget cameraWidget;
     private SettingsWidget settingsWidget;
+    private SaveRecordingWidget saveRecordingWidget;
+    private ViewRecordingsWidget viewRecordingsWidget;
     private QuitWidget quitWidget;
     List<Widget> togglableWidgets = new ArrayList<Widget>();
 
@@ -32,7 +34,6 @@ public class WidgetService extends Service {
 
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
-
         // ***
         // Add widgets
         // ***
@@ -46,6 +47,16 @@ public class WidgetService extends Service {
         settingsWidget.setPosition(Gravity.CENTER_VERTICAL | Gravity.LEFT, 16, 150);
         togglableWidgets.add(settingsWidget);
 
+        // Save recording
+        saveRecordingWidget = new SaveRecordingWidget(this, windowManager);
+        saveRecordingWidget.setPosition(Gravity.CENTER_VERTICAL | Gravity.LEFT, 16, -150);
+        togglableWidgets.add(saveRecordingWidget);
+
+        // View recordings
+        viewRecordingsWidget = new ViewRecordingsWidget(this, windowManager);
+        viewRecordingsWidget.setPosition(Gravity.CENTER_VERTICAL | Gravity.LEFT, 16, -290);
+        togglableWidgets.add(viewRecordingsWidget);
+
         // Camera (primary widget)
         cameraWidget = new CamWidget(this, windowManager, togglableWidgets.toArray(new Widget[togglableWidgets.size()]));
         cameraWidget.setPosition(Gravity.CENTER_VERTICAL | Gravity.LEFT, 0, 0);
@@ -55,6 +66,10 @@ public class WidgetService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        // Remove widget views from display
+        viewRecordingsWidget.hide();
+        saveRecordingWidget.hide();
         cameraWidget.hide();
         settingsWidget.hide();
         quitWidget.hide();
