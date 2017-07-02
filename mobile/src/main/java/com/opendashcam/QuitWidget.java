@@ -1,4 +1,4 @@
-package com.example.myfirstapp;
+package com.opendashcam;
 
 import android.app.Service;
 import android.view.View;

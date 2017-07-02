@@ -1,8 +1,9 @@
-package com.example.myfirstapp;
+package com.opendashcam;
 
 import android.app.Service;
 import android.view.View;
 import android.view.WindowManager;
+
 
 /**
  * Camera is the primary widget that toggles the visibility of the other application widgets
