@@ -3,36 +3,131 @@ package com.opendashcam;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+    private static final int REQUEST_CAMERA = 1;
+
+    //Request Audio
+    private static final int REQUEST_AUDIO = 2;
+
+    //External Storage
+    private static final int REQUEST_STORAGE = 3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Check permissions
-        if (!checkDrawPermission() || !checkCameraPermission()) {
+        // **
+        // Google Maps BEGIN
+        // **
+        //Uri location = Uri.parse("geo:0,0?free=1&mode=d&entry=fnls");
+        //Intent mapIntent = new Intent(Intent.ACTION_VIEW, location);
+        //startActivity(mapIntent);
+        // **
+        // Google Maps ENDW
+        // **
+        setContentView(R.layout.activity_main);
+        if (!checkDrawPermission()) {
             finish();
             return;
         }
+        if(checkPermissionsForRecord()){
+            startWidgetService();
+        }else {
+            askPermissionCamera();
+        }
+    }
 
-        // Launch navigation app
-        launchNavigation();
-
-        // Start widget service
-        Intent i = new Intent(getApplicationContext(), WidgetService.class);
-        startService(i);
-
-        // Close the activity, we don't have an app window
+    private void startWidgetService(){
+        Intent intent = new Intent(MainActivity.this, WidgetService.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startService(intent);
         finish();
+    }
+
+
+    private void askPermissionCamera() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.CAMERA},
+                    REQUEST_CAMERA);
+        }else
+            askPermissionAudio();
+    }
+
+    private void askPermissionAudio(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.RECORD_AUDIO},
+                    REQUEST_AUDIO);
+        }
+        else
+            askPermissionStorage();
+    }
+
+    private void askPermissionStorage(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_STORAGE);
+        }else
+            startWidgetService();
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+
+        switch (requestCode) {
+            case REQUEST_CAMERA: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    askPermissionAudio();
+                } else {
+                    //Denied
+                    askPermissionCamera();
+                    Toast.makeText(getApplicationContext(),
+                            "Permission Camera Denied", Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+            case REQUEST_AUDIO: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    askPermissionStorage();
+                } else {
+                    //Denied
+                    askPermissionAudio();
+                    Toast.makeText(getApplicationContext(),
+                            "Permission Audio Denied", Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+            case REQUEST_STORAGE: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    askPermissionCamera();
+                } else {
+                    //Denied
+                    askPermissionStorage();
+                    Toast.makeText(getApplicationContext(),
+                            "Permission Storage Denied", Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+
+        }
     }
 
     private boolean checkDrawPermission() {
@@ -45,13 +140,7 @@ public class MainActivity extends Activity {
                 /** request permission via start activity for result */
                 startActivity(intent);
 
-                Toast.makeText(MainActivity.this, "Draw over apps permission needed", Toast.LENGTH_LONG)
-                        .show();
-
-                Toast.makeText(MainActivity.this, "Allow and click \"Back\"", Toast.LENGTH_LONG)
-                        .show();
-
-                Toast.makeText(MainActivity.this, "Then restart the Open Dash Cam app", Toast.LENGTH_LONG)
+                Toast.makeText(MainActivity.this, "Draw over apps permission needed. Allow and re-start the app", Toast.LENGTH_LONG)
                         .show();
 
                 return false;
@@ -60,47 +149,12 @@ public class MainActivity extends Activity {
         return true;
     }
 
-    private boolean checkCameraPermission() {
-        // Check for camera permission
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(MainActivity.this, "Camera permission needed", Toast.LENGTH_LONG)
-                    .show();
-
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, 777);
-
-            Toast.makeText(MainActivity.this, "Allow and re-start the app", Toast.LENGTH_LONG)
-                    .show();
-
+    private boolean checkPermissionsForRecord(){
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)!= PackageManager.PERMISSION_GRANTED|
+                ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)!= PackageManager.PERMISSION_GRANTED|
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
             return false;
-        } else {
-            return true;
         }
-    }
-
-    /**
-     * Checks if Android Auto is installed and starts it as a background navigation app.
-     * Otherwise starts default navigation app.
-     */
-    private void launchNavigation() {
-        String androidAutoPackage = "com.google.android.projection.gearhead";
-
-        PackageManager packageManager = getPackageManager();
-        ApplicationInfo applicationInfo = null;
-        // Check if Android Auto is installed on the device
-        try {
-            applicationInfo = packageManager.getApplicationInfo(androidAutoPackage, 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        if (applicationInfo == null) {
-            // not installed, open default navigation app
-            Uri location = Uri.parse("geo:0,0?free=1&mode=d&entry=fnls");
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, location);
-            startActivity(mapIntent);
-        } else {
-            // Installed, open Android Auto
-            Intent launchIntent = getPackageManager().getLaunchIntentForPackage(androidAutoPackage);
-            startActivity(launchIntent);
-        }
+        return true;
     }
 }
