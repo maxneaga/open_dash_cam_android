@@ -12,20 +12,39 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends Activity {
+
+    public static final int MULTIPLE_PERMISSIONS_RESPONSE_CODE = 10;
+
+    String[] permissions= new String[]{
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // Check permissions
-        if (!checkDrawPermission() || !checkCameraPermission()) {
+        if (!checkDrawPermission()) {
             finish();
             return;
         }
+        if (checkPermissions()) {
+            startApp();
+        }
+    }
 
+    private void startApp() {
         // Launch navigation app
-        launchNavigation();
+        //launchNavigation();
+
+        // Start recording video
+        //Intent videoIntent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
+        //startService(videoIntent);
 
         // Start widget service
         Intent i = new Intent(getApplicationContext(), WidgetService.class);
@@ -60,20 +79,45 @@ public class MainActivity extends Activity {
         return true;
     }
 
-    private boolean checkCameraPermission() {
-        // Check for camera permission
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(MainActivity.this, "Camera permission needed", Toast.LENGTH_LONG)
-                    .show();
 
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, 777);
-
-            Toast.makeText(MainActivity.this, "Allow and re-start the app", Toast.LENGTH_LONG)
-                    .show();
-
+    private  boolean checkPermissions() {
+        int result;
+        List<String> listPermissionsNeeded = new ArrayList<>();
+        for (String p:permissions) {
+            result = ActivityCompat.checkSelfPermission(MainActivity.this,p);
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(p);
+            }
+        }
+        if (!listPermissionsNeeded.isEmpty()) {
+            ActivityCompat.requestPermissions(this,
+                    listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]),
+                    MULTIPLE_PERMISSIONS_RESPONSE_CODE );
             return false;
-        } else {
-            return true;
+        }
+        return true;
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MULTIPLE_PERMISSIONS_RESPONSE_CODE:{
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    // permissions granted
+                    startApp();
+                } else {
+                    // permissions not granted
+                    Toast.makeText(MainActivity.this, "Permissions denied. The app cannot start.", Toast.LENGTH_LONG)
+                            .show();
+
+                    Toast.makeText(MainActivity.this, "Please re-start Open Dash Cam app and grant the requested permissions.", Toast.LENGTH_LONG)
+                            .show();
+
+                    finish();
+                }
+                return;
+            }
         }
     }
 
