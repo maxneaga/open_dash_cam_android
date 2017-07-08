@@ -27,6 +27,10 @@
             android:name="com.opendashcam.WidgetService"
             android:enabled="true"
             android:exported="true" />
+        <service
+            android:name="com.opendashcam.BackgroundVideoRecorder"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 
 </manifest>

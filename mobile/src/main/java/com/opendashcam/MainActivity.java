@@ -40,11 +40,11 @@ public class MainActivity extends Activity {
 
     private void startApp() {
         // Launch navigation app
-        //launchNavigation();
+        launchNavigation();
 
         // Start recording video
-        //Intent videoIntent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
-        //startService(videoIntent);
+        Intent videoIntent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
+        startService(videoIntent);
 
         // Start widget service
         Intent i = new Intent(getApplicationContext(), WidgetService.class);

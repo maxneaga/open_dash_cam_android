@@ -1,6 +1,7 @@
 package com.opendashcam;
 
 import android.app.Service;
+import android.content.Intent;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -19,6 +20,8 @@ public class QuitWidget extends Widget {
         widget.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Stop video recording service
+                service.stopService(new Intent(service, BackgroundVideoRecorder.class));
                 service.stopSelf();
             }
         });
