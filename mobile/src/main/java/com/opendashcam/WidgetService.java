@@ -2,6 +2,7 @@ package com.opendashcam;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
 import android.view.Gravity;
 import android.view.WindowManager;
@@ -81,4 +82,11 @@ public class WidgetService extends Service {
         startActivity(startMain);
     }
 
+    // Hides the visibility of non-primary widgets
+    public void hideTogglableWidgets() {
+        Widget togglableWidgetsArray[] = togglableWidgets.toArray(new Widget[togglableWidgets.size()]);
+        for (int i = 0; i < togglableWidgetsArray.length; i++) {
+            togglableWidgetsArray[i].hide();
+        }
+    }
 }

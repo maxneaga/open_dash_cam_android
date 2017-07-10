@@ -22,6 +22,7 @@ public class QuitWidget extends Widget {
             public void onClick(View v) {
                 // Stop video recording service
                 service.stopService(new Intent(service, BackgroundVideoRecorder.class));
+                // Stop the widget service
                 service.stopSelf();
             }
         });

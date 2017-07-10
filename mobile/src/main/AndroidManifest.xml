@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -14,7 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.opendashcam.MainActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar">
+        <activity
+            android:name=".MainActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -23,13 +26,19 @@
         </activity>
 
         <service
-            android:name="com.opendashcam.WidgetService"
+            android:name=".WidgetService"
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name="com.opendashcam.BackgroundVideoRecorder"
+            android:name=".BackgroundVideoRecorder"
             android:enabled="true"
             android:exported="true" />
+
+        <activity android:name=".ViewRecordingsActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
     </application>
 
 </manifest>
