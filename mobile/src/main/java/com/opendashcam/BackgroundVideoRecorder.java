@@ -82,7 +82,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
 
         mediaRecorder.setOutputFile(
-                Environment.getExternalStorageDirectory()+"/"+
+                Environment.getExternalStorageDirectory()+"/OpenDashCam/"+
                         DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+
                         ".mp4"
         );
