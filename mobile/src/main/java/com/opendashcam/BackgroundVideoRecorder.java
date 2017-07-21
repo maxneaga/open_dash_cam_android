@@ -8,6 +8,7 @@ import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Environment;
 import android.os.IBinder;
 import android.text.format.DateFormat;
@@ -17,6 +18,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
+import java.io.File;
 import java.util.Date;
 
 /**
@@ -81,14 +83,16 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
 
-        mediaRecorder.setOutputFile(
-                Environment.getExternalStorageDirectory()+"/OpenDashCam/"+
-                        DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+
-                        ".mp4"
-        );
+        // Path to the file with the recording to be created
+        final String currentVideoFile = Environment.getExternalStorageDirectory()+"/OpenDashCam/"+
+                DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+
+                ".mp4";
+
+        mediaRecorder.setOutputFile(currentVideoFile);
 
         mediaRecorder.setMaxDuration(5000); // 5 seconds
 
+        // When maximum video length reached
         mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
             @Override
             public void onInfo(MediaRecorder mr, int what, int extra) {
@@ -96,6 +100,9 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                     Log.v("VIDEOCAPTURE","Maximum Duration Reached");
                     mediaRecorder.stop();
                     mediaRecorder.reset();
+
+                    // Let MediaStore Content Provider know about the new file
+                    sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(currentVideoFile))));
 
                     initMediaRecorder(surfaceHolder);
 
