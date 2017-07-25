@@ -33,6 +33,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     private SurfaceView surfaceView;
     private Camera camera = null;
     private MediaRecorder mediaRecorder = null;
+    private String currentVideoFile;
 
     @Override
     public void onCreate() {
@@ -84,7 +85,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
 
         // Path to the file with the recording to be created
-        final String currentVideoFile = Environment.getExternalStorageDirectory()+"/OpenDashCam/"+
+        currentVideoFile = Environment.getExternalStorageDirectory()+"/OpenDashCam/"+
                 DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+
                 ".mp4";
 
@@ -120,6 +121,9 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         mediaRecorder.stop();
         mediaRecorder.reset();
         mediaRecorder.release();
+
+        // Let MediaStore Content Provider know about the new file
+        sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(currentVideoFile))));
 
         camera.lock();
         camera.release();
