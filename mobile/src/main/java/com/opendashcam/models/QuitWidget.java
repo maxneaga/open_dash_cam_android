@@ -1,16 +1,19 @@
-package com.opendashcam;
+package com.opendashcam.models;
 
 import android.app.Service;
 import android.content.Intent;
 import android.view.View;
 import android.view.WindowManager;
 
+import com.opendashcam.BackgroundVideoRecorder;
+import com.opendashcam.R;
+
 /**
  * Stops the service and closes the application
  */
 
 public class QuitWidget extends Widget {
-    QuitWidget(final Service service, WindowManager windowManager) {
+    public QuitWidget(final Service service, WindowManager windowManager) {
         super(service, windowManager);
 
         // Set image for the widget

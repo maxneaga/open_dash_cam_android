@@ -1,4 +1,4 @@
-package com.opendashcam;
+package com.opendashcam.models;
 
 import android.app.Service;
 import android.graphics.PixelFormat;

@@ -2,10 +2,16 @@ package com.opendashcam;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.IBinder;
 import android.view.Gravity;
 import android.view.WindowManager;
+
+import com.opendashcam.models.CamWidget;
+import com.opendashcam.models.QuitWidget;
+import com.opendashcam.models.SaveRecordingWidget;
+import com.opendashcam.models.SettingsWidget;
+import com.opendashcam.models.ViewRecordingsWidget;
+import com.opendashcam.models.Widget;
 
 import java.util.ArrayList;
 import java.util.List;

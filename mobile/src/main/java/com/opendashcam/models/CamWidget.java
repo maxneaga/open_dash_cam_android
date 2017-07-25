@@ -1,8 +1,10 @@
-package com.opendashcam;
+package com.opendashcam.models;
 
 import android.app.Service;
 import android.view.View;
 import android.view.WindowManager;
+
+import com.opendashcam.R;
 
 
 /**
@@ -17,7 +19,7 @@ public class CamWidget extends Widget {
      * @param windowManager windowManager for the widget display
      * @param togglableWidgets List of widgets to toggle visibility of when this widget is touched
      */
-    CamWidget(final Service service, WindowManager windowManager, final Widget[] togglableWidgets) {
+    public CamWidget(final Service service, WindowManager windowManager, final Widget[] togglableWidgets) {
         super(service, windowManager);
 
         // Set image for the widget
