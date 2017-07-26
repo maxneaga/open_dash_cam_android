@@ -33,7 +33,11 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     private SurfaceView surfaceView;
     private Camera camera = null;
     private MediaRecorder mediaRecorder = null;
+    private static String VIDEOS_DIRECTORY_NAME = "OpenDashCam";
+    private static String VIDEOS_DIRECTORY_PATH = Environment.getExternalStorageDirectory()+"/"+VIDEOS_DIRECTORY_NAME+"/";
     private String currentVideoFile;
+    private static int QUOTA = 50;
+    private static int MAX_DURATION = 5000; // 5 seconds
 
     @Override
     public void onCreate() {
@@ -74,6 +78,14 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     }
 
     private void initMediaRecorder(final SurfaceHolder surfaceHolder) {
+        // Create directory for recordings if not exists
+        File RecordingsPath = new File(VIDEOS_DIRECTORY_PATH);
+        if (!RecordingsPath.isDirectory()) {
+            RecordingsPath.mkdir();
+        }
+
+        rotateRecordings(QUOTA);
+
         camera = Camera.open();
         mediaRecorder = new MediaRecorder();
         camera.unlock();
@@ -85,13 +97,13 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
 
         // Path to the file with the recording to be created
-        currentVideoFile = Environment.getExternalStorageDirectory()+"/OpenDashCam/"+
+        currentVideoFile = VIDEOS_DIRECTORY_PATH+
                 DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+
                 ".mp4";
 
         mediaRecorder.setOutputFile(currentVideoFile);
 
-        mediaRecorder.setMaxDuration(5000); // 5 seconds
+        mediaRecorder.setMaxDuration(MAX_DURATION);
 
         // When maximum video length reached
         mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
@@ -130,6 +142,55 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
         windowManager.removeView(surfaceView);
 
+    }
+
+    /**
+     * Removes old recordings to create space for the new ones in order to stay withing the
+     * set app quota.
+     * @param quota Maximum size the recordings directory may reach in megabytes
+     */
+    private void rotateRecordings(int quota) {
+        File RecordingsPath = new File(VIDEOS_DIRECTORY_PATH);
+        File oldestFile = null;
+
+        // Quota exceeded?
+        if (getFolderSize(RecordingsPath) >= quota) {
+            // Remove the oldest file in the directory
+            for (File fileInDirectory : RecordingsPath.listFiles()) {
+                // If this is the first run, assign the first file as the oldest
+                if (oldestFile == null
+                        || oldestFile.lastModified() > fileInDirectory.lastModified())
+                {
+                    oldestFile = fileInDirectory;
+                }
+            }
+            oldestFile.delete();
+
+            // Let MediaStore Content Provider know about the deleted file
+            sendBroadcast(
+                    new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(oldestFile))
+            );
+
+            // See if we need to delete more files to fit the quota
+            rotateRecordings(quota);
+        }
+    }
+
+    /**
+     * Calculates the size of a directory in megabytes
+     * @param file    The directory to calculate the size of
+     * @return          size of a directory in megabytes
+     */
+    private long getFolderSize(File file) {
+        long size = 0;
+        if (file.isDirectory()) {
+            for (File fileInDirectory : file.listFiles()) {
+                size += getFolderSize(fileInDirectory);
+            }
+        } else {
+            size=file.length();
+        }
+        return size/1024;
     }
 
     @Override
