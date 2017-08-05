@@ -81,6 +81,10 @@ public class WidgetService extends Service {
         settingsWidget.hide();
         quitWidget.hide();
 
+        // Close DB connection
+        DBHelper dbHelper = DBHelper.getInstance(this);
+        dbHelper.close();
+
         // Return to home screen
         Intent startMain = new Intent(Intent.ACTION_MAIN);
         startMain.addCategory(Intent.CATEGORY_HOME);

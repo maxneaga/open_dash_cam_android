@@ -16,6 +16,7 @@ public class Recording {
     public String dateSaved;
     public String timeSaved;
     public Bitmap thumbnail;
+    public boolean starred;
 
     public void getDatesFromFile() {
         if(filename != null && !filename.isEmpty()) {

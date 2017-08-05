@@ -68,7 +68,7 @@ public class ViewRecordingsActivity extends AppCompatActivity {
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recordings = getDataSet();
-        adapter = new ViewRecordingsRecyclerViewAdapter(recordings);
+        adapter = new ViewRecordingsRecyclerViewAdapter(this.getApplicationContext(), recordings);
         recyclerView.setAdapter(adapter);
     }
 
