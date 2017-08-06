@@ -17,6 +17,9 @@ import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+import android.widget.Toast;
+
+import com.opendashcam.models.Recording;
 
 import java.io.File;
 import java.util.Date;
@@ -36,8 +39,9 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     private static String VIDEOS_DIRECTORY_NAME = "OpenDashCam";
     private static String VIDEOS_DIRECTORY_PATH = Environment.getExternalStorageDirectory()+"/"+VIDEOS_DIRECTORY_NAME+"/";
     private String currentVideoFile;
-    private static int QUOTA = 50;
-    private static int MAX_DURATION = 5000; // 5 seconds
+    private static int QUOTA = 80;
+    private static int QUOTA_WARNING_THRESHOLD = 20;
+    private static int MAX_DURATION = 10000; // 10 seconds
 
     @Override
     public void onCreate() {
@@ -152,6 +156,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     private void rotateRecordings(int quota) {
         File RecordingsPath = new File(VIDEOS_DIRECTORY_PATH);
         File oldestFile = null;
+        int starred_videos_total_size = 0;
 
         // Quota exceeded?
         if (getFolderSize(RecordingsPath) >= quota) {
@@ -161,9 +166,30 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                 if (oldestFile == null
                         || oldestFile.lastModified() > fileInDirectory.lastModified())
                 {
+                    // Skip starred recordings, we don't want to rotate those
+                    Recording recording = new Recording(this.getApplicationContext(), 0, fileInDirectory.getAbsolutePath());
+                    if (recording.getStarredStatus()) {
+                        starred_videos_total_size += fileInDirectory.length()/1024;
+                        continue;
+                    }
+
+                    // Otherwise if not starred
                     oldestFile = fileInDirectory;
                 }
             }
+
+            if ((quota - starred_videos_total_size) < QUOTA_WARNING_THRESHOLD) {
+                Toast.makeText(
+                        this.getApplicationContext(),
+                        "WARNING: Low on space quota.\n" +
+                                "Un-star videos to free up space.",
+                        Toast.LENGTH_LONG).show();
+            }
+
+            if (oldestFile == null) {
+                return;
+            }
+
             oldestFile.delete();
 
             // Let MediaStore Content Provider know about the deleted file
