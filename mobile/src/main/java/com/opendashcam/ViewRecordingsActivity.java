@@ -84,10 +84,10 @@ public class ViewRecordingsActivity extends AppCompatActivity {
                 Log.i(LOG_TAG, " Clicked on Item " + position);
 
                 // Play recording on position
-                showToast(recordings.get(position).dateSaved +
+                showToast(recordings.get(position).getDateSaved() +
                         " - " +
-                        recordings.get(position).timeSaved);
-                openFile(Uri.fromFile(new File(recordings.get(position).filename)), "video/mp4");
+                        recordings.get(position).getTimeSaved());
+                openFile(Uri.fromFile(new File(recordings.get(position).getFilePath())), "video/mp4");
             }
         });
     }
@@ -117,21 +117,16 @@ public class ViewRecordingsActivity extends AppCompatActivity {
 
         for(int i=0;i<count;i++)
         {
-            Recording recording = new Recording();
-
             // Get id
             int id = cursor.getInt(columnIndex);
-            recording.id = Integer.toString(id);
-            // Get filename
-            recording.filename = cursor.getString(columnMetaIndex);
-            // Get thumbnail
-            recording.thumbnail = MediaStore.Video.Thumbnails.getThumbnail(
-                    getContentResolver(),
-                    id, MediaStore.Video.Thumbnails.MINI_KIND, null);
-            // Get dates for display
-            recording.getDatesFromFile();
 
+            // Get filePath
+            String filePath = cursor.getString(columnMetaIndex);
+
+            // Add recording object to the arraylist
+            Recording recording = new Recording(context, id, filePath);
             results.add(i, recording);
+
             cursor.moveToNext();
         }
 
