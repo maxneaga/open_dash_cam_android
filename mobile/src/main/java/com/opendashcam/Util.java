@@ -1,7 +1,11 @@
 package com.opendashcam;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -36,5 +40,22 @@ final class Util {
             public void onFinish() {tag.show();}
 
         }.start();
+    }
+
+    /**
+     * Starts new activity to open speicified file
+     * @param file  File to open
+     * @param mimeType  Mime type of the file to open
+     */
+    public static void openFile(Context context, Uri file, String mimeType) {
+        Intent openFile = new Intent(Intent.ACTION_VIEW);
+        openFile.setDataAndType(file, mimeType);
+        openFile.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        openFile.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            context.startActivity(openFile);
+        } catch (ActivityNotFoundException e) {
+            Log.i("OpenDashCam", "Cannot open file.");
+        }
     }
 }

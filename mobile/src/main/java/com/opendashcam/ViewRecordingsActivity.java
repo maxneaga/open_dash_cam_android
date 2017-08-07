@@ -1,8 +1,6 @@
 package com.opendashcam;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -86,7 +84,7 @@ public class ViewRecordingsActivity extends AppCompatActivity {
                 Util.showToast(context, recordings.get(position).getDateSaved() +
                         " - " +
                         recordings.get(position).getTimeSaved());
-                openFile(Uri.fromFile(new File(recordings.get(position).getFilePath())), "video/mp4");
+                Util.openFile(context, Uri.fromFile(new File(recordings.get(position).getFilePath())), "video/mp4");
             }
         });
     }
@@ -130,22 +128,5 @@ public class ViewRecordingsActivity extends AppCompatActivity {
         }
 
         return results;
-    }
-
-    /**
-     * Starts new activity to open speicified file
-     * @param file  File to open
-     * @param mimeType  Mime type of the file to open
-     */
-    private void openFile(Uri file, String mimeType) {
-        Intent openFile = new Intent(Intent.ACTION_VIEW);
-        openFile.setDataAndType(file, mimeType);
-        openFile.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        openFile.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        try {
-            context.startActivity(openFile);
-        } catch (ActivityNotFoundException e) {
-            Log.i(LOG_TAG, "Cannot open file.");
-        }
     }
 }
