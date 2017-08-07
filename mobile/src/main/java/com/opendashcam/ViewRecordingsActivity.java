@@ -12,7 +12,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import com.opendashcam.models.Recording;
 
@@ -68,7 +67,7 @@ public class ViewRecordingsActivity extends AppCompatActivity {
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recordings = getDataSet();
-        adapter = new ViewRecordingsRecyclerViewAdapter(this.getApplicationContext(), recordings);
+        adapter = new ViewRecordingsRecyclerViewAdapter(context, recordings);
         recyclerView.setAdapter(adapter);
     }
 
@@ -84,7 +83,7 @@ public class ViewRecordingsActivity extends AppCompatActivity {
                 Log.i(LOG_TAG, " Clicked on Item " + position);
 
                 // Play recording on position
-                showToast(recordings.get(position).getDateSaved() +
+                Util.showToast(context, recordings.get(position).getDateSaved() +
                         " - " +
                         recordings.get(position).getTimeSaved());
                 openFile(Uri.fromFile(new File(recordings.get(position).getFilePath())), "video/mp4");
@@ -131,14 +130,6 @@ public class ViewRecordingsActivity extends AppCompatActivity {
         }
 
         return results;
-    }
-
-    /**
-     * Displays toast message if LONG length
-     * @param msg   Message to display
-     */
-    protected void showToast(String msg) {
-        Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
     }
 
     /**

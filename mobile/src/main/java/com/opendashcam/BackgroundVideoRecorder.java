@@ -17,7 +17,6 @@ import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.opendashcam.models.Recording;
 
@@ -179,11 +178,10 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
             }
 
             if ((quota - starred_videos_total_size) < QUOTA_WARNING_THRESHOLD) {
-                Toast.makeText(
+                Util.showToastLong(
                         this.getApplicationContext(),
                         "WARNING: Low on space quota.\n" +
-                                "Un-star videos to free up space.",
-                        Toast.LENGTH_LONG).show();
+                        "Un-star videos to free up space.");
             }
 
             if (oldestFile == null) {
