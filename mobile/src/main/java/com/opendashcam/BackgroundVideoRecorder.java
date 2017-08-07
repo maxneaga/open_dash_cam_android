@@ -168,7 +168,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                     // Skip starred recordings, we don't want to rotate those
                     Recording recording = new Recording(this.getApplicationContext(), 0, fileInDirectory.getAbsolutePath());
                     if (recording.getStarredStatus()) {
-                        starred_videos_total_size += fileInDirectory.length()/1024;
+                        starred_videos_total_size += fileInDirectory.length()/(1024*1024);
                         continue;
                     }
 
