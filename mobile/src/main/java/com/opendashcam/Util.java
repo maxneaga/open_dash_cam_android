@@ -12,7 +12,7 @@ import android.widget.Toast;
  * Global utility methods
  */
 
-final class Util {
+public final class Util {
     /**
      * Displays toast message of LONG length
      * @param context   Application context

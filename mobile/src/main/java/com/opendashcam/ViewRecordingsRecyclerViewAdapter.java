@@ -13,7 +13,6 @@ import android.widget.TextView;
 
 import com.opendashcam.models.Recording;
 
-import java.io.File;
 import java.util.ArrayList;
 
 /**

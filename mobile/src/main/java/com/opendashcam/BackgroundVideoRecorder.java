@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
@@ -37,7 +38,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     private MediaRecorder mediaRecorder = null;
     private static String VIDEOS_DIRECTORY_NAME = "OpenDashCam";
     private static String VIDEOS_DIRECTORY_PATH = Environment.getExternalStorageDirectory()+"/"+VIDEOS_DIRECTORY_NAME+"/";
-    private String currentVideoFile;
+    private String currentVideoFile = "null";
     private static int QUOTA = 80;
     private static int QUOTA_WARNING_THRESHOLD = 20;
     private static int MAX_DURATION = 10000; // 10 seconds
@@ -99,10 +100,29 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
 
+        // Store previous and current recording filenames, so that they may be retrieved by the
+        // SaveRecordingWidget
+        SharedPreferences sharedPref = this.getApplicationContext().getSharedPreferences(
+                getString(R.string.current_recordings_preferences_key),
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        // previous recording = currentVideoFile
+        editor.putString(
+                getString(R.string.previous_recording_preferences_key),
+                currentVideoFile);
+        editor.commit();
+
         // Path to the file with the recording to be created
         currentVideoFile = VIDEOS_DIRECTORY_PATH+
                 DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+
                 ".mp4";
+
+        // // current recording = currentVideoFile (after updated)
+        editor.putString(
+                getString(R.string.current_recording_preferences_key),
+                currentVideoFile);
+        editor.commit();
 
         mediaRecorder.setOutputFile(currentVideoFile);
 

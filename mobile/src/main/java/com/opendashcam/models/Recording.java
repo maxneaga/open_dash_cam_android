@@ -102,12 +102,14 @@ public class Recording {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         // If checked, add to the starred recording table in DB
         if (isChecked) {
-            // Prepare for insertion to DB
-            ContentValues values = new ContentValues();
-            values.put(DBContract.StarredRecording.COLUMN_NAME_FILE, filename);
-            // Insert
-            db.insert(DBContract.StarredRecording.TABLE_NAME, null, values);
-
+            // Make sure not yet starred
+            if (!isStarred(context)) {
+                // Prepare for insertion to DB
+                ContentValues values = new ContentValues();
+                values.put(DBContract.StarredRecording.COLUMN_NAME_FILE, filename);
+                // Insert
+                db.insert(DBContract.StarredRecording.TABLE_NAME, null, values);
+            }
             return true;
         } else {
             // Define "where" DB query

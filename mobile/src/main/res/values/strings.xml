@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Open Dash Cam</string>
+    <string name="current_recordings_preferences_key">com.opendashcam.CURRENT_RECORDINGS</string>
+    <string name="previous_recording_preferences_key">PREVIOUS_RECORDING</string>
+    <string name="current_recording_preferences_key">CURRENT_RECORDING</string>
+    <!-- Save recording widget -->
+    <string name="save_recording_success_msg">Current recording marked as starred.
+Starred recordings will not be deleted.</string>
 </resources>
