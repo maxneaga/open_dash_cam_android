@@ -6,4 +6,17 @@
     <!-- Save recording widget -->
     <string name="save_recording_success_msg">Current recording marked as starred.
 Starred recordings will not be deleted.</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Settings -->
+    <string name="pref_title_rotate">Rotate recordings 90 degrees</string>
+    <string name="pref_description_rotate">Some devices record videos in the flipped mode.
+        If that is the case, enable this setting
+    </string>
+
+    <string name="pref_title_shutter_sound">Shutter sound</string>
+    <string name="pref_description_shutter_sound">Enable camera sound when recording starts
+        and stops
+    </string>
+
 </resources>
