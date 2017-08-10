@@ -5,8 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
+
+import java.io.File;
 
 /**
  * Global utility methods
@@ -58,4 +61,24 @@ public final class Util {
             Log.i("OpenDashCam", "Cannot open file.");
         }
     }
+
+    public static long getFolderSize(File directory) {
+        long length = 0;
+        if(!directory.exists())
+            return 0;
+        for (File file : directory.listFiles()) {
+            if (file.isFile())
+                length += file.length();
+            else
+                length += getFolderSize(file);
+        }
+        return length/1024;
+    }
+
+    public static long getFreeSpaceExternalStorage() {
+        File externalStorageDir = Environment.getExternalStorageDirectory();
+        long free = externalStorageDir.getFreeSpace() / 1024 / 1024;
+        return free;
+    }
+
 }

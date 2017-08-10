@@ -12,8 +12,12 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.opendashcam.Util.getFolderSize;
+import static com.opendashcam.Util.getFreeSpaceExternalStorage;
 
 public class MainActivity extends Activity {
 
@@ -40,17 +44,24 @@ public class MainActivity extends Activity {
     }
 
     private void startApp() {
-        // Launch navigation app
-        launchNavigation();
 
-        // Start recording video
-        Intent videoIntent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
-        startService(videoIntent);
+        if(checkAvailableStorageSize()){
+            Toast.makeText(MainActivity.this, "You are out of storage", Toast.LENGTH_LONG)
+                    .show();
+        }
+        else{
+            // Launch navigation app
+            launchNavigation();
 
-        // Start widget service
-        Intent i = new Intent(getApplicationContext(), WidgetService.class);
-        startService(i);
+            // Start recording video
+            Intent videoIntent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
+            startService(videoIntent);
 
+            // Start widget service
+            Intent i = new Intent(getApplicationContext(), WidgetService.class);
+            startService(i);
+
+        }
         // Close the activity, we don't have an app window
         finish();
     }
@@ -146,6 +157,15 @@ public class MainActivity extends Activity {
             // Installed, open Android Auto
             Intent launchIntent = getPackageManager().getLaunchIntentForPackage(androidAutoPackage);
             startActivity(launchIntent);
+        }
+    }
+
+    private boolean checkAvailableStorageSize(){
+        long folderMegaSize = getFolderSize(new File(BackgroundVideoRecorder.VIDEOS_DIRECTORY_PATH))/1024;
+        if(getFreeSpaceExternalStorage()+folderMegaSize<1250){
+            return true;
+        }else {
+            return false;
         }
     }
 }

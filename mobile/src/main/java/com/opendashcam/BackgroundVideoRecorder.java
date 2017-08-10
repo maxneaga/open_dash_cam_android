@@ -37,7 +37,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     private Camera camera = null;
     private MediaRecorder mediaRecorder = null;
     private static String VIDEOS_DIRECTORY_NAME = "OpenDashCam";
-    private static String VIDEOS_DIRECTORY_PATH = Environment.getExternalStorageDirectory()+"/"+VIDEOS_DIRECTORY_NAME+"/";
+    public static String VIDEOS_DIRECTORY_PATH = Environment.getExternalStorageDirectory()+"/"+VIDEOS_DIRECTORY_NAME+"/";
     private String currentVideoFile = "null";
     private static int QUOTA = 80;
     private static int QUOTA_WARNING_THRESHOLD = 20;
