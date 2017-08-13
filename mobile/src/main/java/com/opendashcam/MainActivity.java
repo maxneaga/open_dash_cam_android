@@ -45,11 +45,11 @@ public class MainActivity extends Activity {
 
     private void startApp() {
 
-        if(checkAvailableStorageSize()){
-            Toast.makeText(MainActivity.this, "You are out of storage", Toast.LENGTH_LONG)
-                    .show();
+        if (!isEnoughStorage()) {
+            Util.showToastLong(this.getApplicationContext(),
+                    "Not enough storage to run the app. Clean up space for recordings.");
         }
-        else{
+        else {
             // Launch navigation app
             launchNavigation();
 
@@ -160,12 +160,12 @@ public class MainActivity extends Activity {
         }
     }
 
-    private boolean checkAvailableStorageSize(){
-        long folderMegaSize = getFolderSize(new File(BackgroundVideoRecorder.VIDEOS_DIRECTORY_PATH))/1024;
-        if(getFreeSpaceExternalStorage()+folderMegaSize<1250){
-            return true;
-        }else {
+    private boolean isEnoughStorage(){
+        long appFolderSie = getFolderSize(new File(Util.getVideosDirectoryPath()));
+        if(getFreeSpaceExternalStorage() + appFolderSie < (Util.getQuota() + 250)){
             return false;
+        }else {
+            return true;
         }
     }
 }

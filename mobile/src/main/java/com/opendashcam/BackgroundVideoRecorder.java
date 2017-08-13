@@ -10,7 +10,6 @@ import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
-import android.os.Environment;
 import android.os.IBinder;
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -36,12 +35,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     private SurfaceView surfaceView;
     private Camera camera = null;
     private MediaRecorder mediaRecorder = null;
-    private static String VIDEOS_DIRECTORY_NAME = "OpenDashCam";
-    public static String VIDEOS_DIRECTORY_PATH = Environment.getExternalStorageDirectory()+"/"+VIDEOS_DIRECTORY_NAME+"/";
     private String currentVideoFile = "null";
-    private static int QUOTA = 80;
-    private static int QUOTA_WARNING_THRESHOLD = 20;
-    private static int MAX_DURATION = 10000; // 10 seconds
 
     @Override
     public void onCreate() {
@@ -83,12 +77,12 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
     private void initMediaRecorder(final SurfaceHolder surfaceHolder) {
         // Create directory for recordings if not exists
-        File RecordingsPath = new File(VIDEOS_DIRECTORY_PATH);
+        File RecordingsPath = new File(Util.getVideosDirectoryPath());
         if (!RecordingsPath.isDirectory()) {
             RecordingsPath.mkdir();
         }
 
-        rotateRecordings(QUOTA);
+        rotateRecordings(Util.getQuota());
 
         camera = Camera.open();
         mediaRecorder = new MediaRecorder();
@@ -114,7 +108,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         editor.commit();
 
         // Path to the file with the recording to be created
-        currentVideoFile = VIDEOS_DIRECTORY_PATH+
+        currentVideoFile = Util.getVideosDirectoryPath()+
                 DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+
                 ".mp4";
 
@@ -126,7 +120,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
         mediaRecorder.setOutputFile(currentVideoFile);
 
-        mediaRecorder.setMaxDuration(MAX_DURATION);
+        mediaRecorder.setMaxDuration(Util.getMaxDuration());
 
         // When maximum video length reached
         mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
@@ -173,12 +167,12 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
      * @param quota Maximum size the recordings directory may reach in megabytes
      */
     private void rotateRecordings(int quota) {
-        File RecordingsPath = new File(VIDEOS_DIRECTORY_PATH);
+        File RecordingsPath = new File(Util.getVideosDirectoryPath());
         File oldestFile = null;
         int starred_videos_total_size = 0;
 
         // Quota exceeded?
-        if (getFolderSize(RecordingsPath) >= quota) {
+        if (Util.getFolderSize(RecordingsPath) >= quota) {
             // Remove the oldest file in the directory
             for (File fileInDirectory : RecordingsPath.listFiles()) {
                 // If this is the first run, assign the first file as the oldest
@@ -197,7 +191,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                 }
             }
 
-            if ((quota - starred_videos_total_size) < QUOTA_WARNING_THRESHOLD) {
+            if ((quota - starred_videos_total_size) < Util.getQuotaWarningThreshold()) {
                 Util.showToastLong(
                         this.getApplicationContext(),
                         "WARNING: Low on space quota.\n" +
@@ -220,22 +214,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         }
     }
 
-    /**
-     * Calculates the size of a directory in megabytes
-     * @param file    The directory to calculate the size of
-     * @return          size of a directory in megabytes
-     */
-    private long getFolderSize(File file) {
-        long size = 0;
-        if (file.isDirectory()) {
-            for (File fileInDirectory : file.listFiles()) {
-                size += getFolderSize(fileInDirectory);
-            }
-        } else {
-            size=file.length();
-        }
-        return size/1024;
-    }
+
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {}
