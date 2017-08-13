@@ -111,4 +111,17 @@ public final class Util {
         return free;
     }
 
+    /**
+     * Delete all recordings created by the app
+     */
+    public static void deleteRecordings(Context context) {
+        File recordings_directory = new File(VIDEOS_DIRECTORY_PATH);
+        for (File fileInDirectory : recordings_directory.listFiles()) {
+            fileInDirectory.delete();
+            // Let MediaStore Content Provider know about the deleted file
+            context.getApplicationContext().sendBroadcast(
+                    new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(fileInDirectory))
+            );
+        }
+    }
 }

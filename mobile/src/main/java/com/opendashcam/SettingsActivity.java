@@ -143,6 +143,17 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_general);
             setHasOptionsMenu(true);
+
+            Preference pref = findPreference("delete_recordings");
+            pref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    Util.deleteRecordings(getActivity());
+                    Util.showToastLong(getActivity(), getString(R.string.pref_delete_recordings_confirmation));
+                    return false;
+                }
+            });
         }
 
         @Override

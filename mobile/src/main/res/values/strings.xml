@@ -19,4 +19,10 @@ Starred recordings will not be deleted.</string>
         and stops
     </string>
 
+    <string name="pref_delete_recordings">Delete all recordings</string>
+    <string name="pref_description_delete_recordings">Delete all recordings created by Open Dash
+        Cam
+    </string>
+    <string name="pref_delete_recordings_confirmation">All recordings deleted</string>
+
 </resources>

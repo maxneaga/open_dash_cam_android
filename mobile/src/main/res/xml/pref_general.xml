@@ -12,4 +12,9 @@
         android:summary="@string/pref_description_shutter_sound"
         android:title="@string/pref_title_shutter_sound" />
 
+    <Preference
+        android:key="delete_recordings"
+        android:summary="@string/pref_description_delete_recordings"
+        android:title="@string/pref_delete_recordings" />
+
 </PreferenceScreen>
