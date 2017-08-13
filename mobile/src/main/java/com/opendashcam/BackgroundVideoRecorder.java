@@ -168,11 +168,12 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
      */
     private void rotateRecordings(int quota) {
         File RecordingsPath = new File(Util.getVideosDirectoryPath());
-        File oldestFile = null;
-        int starred_videos_total_size = 0;
 
         // Quota exceeded?
-        if (Util.getFolderSize(RecordingsPath) >= quota) {
+        while (Util.getFolderSize(RecordingsPath) >= quota) {
+            File oldestFile = null;
+            int starred_videos_total_size = 0;
+
             // Remove the oldest file in the directory
             for (File fileInDirectory : RecordingsPath.listFiles()) {
                 // If this is the first run, assign the first file as the oldest
@@ -208,9 +209,6 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
             sendBroadcast(
                     new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(oldestFile))
             );
-
-            // See if we need to delete more files to fit the quota
-            rotateRecordings(quota);
         }
     }
 

@@ -78,7 +78,7 @@ public class Recording {
         long numRowsWithFilename = DatabaseUtils.queryNumEntries(
                 db,
                 DBContract.StarredRecording.TABLE_NAME,
-                DBContract.StarredRecording.COLUMN_NAME_FILE + " LIKE ?",
+                DBContract.StarredRecording.COLUMN_NAME_FILE + " = ?",
                 new String[] {filename}
         );
 
