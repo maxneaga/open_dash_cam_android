@@ -109,12 +109,17 @@ public class Recording {
                 values.put(DBContract.StarredRecording.COLUMN_NAME_FILE, filename);
                 // Insert
                 db.insert(DBContract.StarredRecording.TABLE_NAME, null, values);
+
+                starred = true;
             }
             return true;
         } else {
             // Define "where" DB query
             String selection = DBContract.StarredRecording.COLUMN_NAME_FILE + " LIKE ?";
             String[] selectionArgs = { filename };
+
+            starred = false;
+
             // Delete
             db.delete(DBContract.StarredRecording.TABLE_NAME, selection, selectionArgs);
 

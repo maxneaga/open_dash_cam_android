@@ -87,8 +87,10 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
      */
     CompoundButton.OnCheckedChangeListener starredListener = new CompoundButton.OnCheckedChangeListener() {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            Recording recording = recordings.get((Integer)buttonView.getTag());
-            recording.toggleStar(context, isChecked);
+            if (buttonView.isPressed()) {
+                Recording recording = recordings.get((Integer)buttonView.getTag());
+                recording.toggleStar(context, isChecked);
+            }
         }
     };
 
