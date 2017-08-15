@@ -7,10 +7,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
+import android.media.AudioManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Gravity;
@@ -119,8 +121,10 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         editor.commit();
 
         mediaRecorder.setOutputFile(currentVideoFile);
-
         mediaRecorder.setMaxDuration(Util.getMaxDuration());
+
+        // Set shutter sound based on preferences
+        disableSound(editor);
 
         // When maximum video length reached
         mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
@@ -156,6 +160,8 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
         camera.lock();
         camera.release();
+
+        reEnableSound();
 
         windowManager.removeView(surfaceView);
 
@@ -209,6 +215,41 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
             sendBroadcast(
                     new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(oldestFile))
             );
+        }
+    }
+
+    /**
+     * Disable system sounds if set in preferences
+     * @param editor    Editor for current recordings preference
+     */
+    private void disableSound(SharedPreferences.Editor editor) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        if (settings.getBoolean("disable_sound", true)) {
+            // Record system volume before app was started
+            AudioManager audio = (AudioManager)this.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+            int volume = audio.getStreamVolume(AudioManager.STREAM_SYSTEM);
+            editor.putInt(
+                    getString(R.string.pre_start_volume),
+                    volume);
+            editor.commit();
+            // Set to silent & vibrate
+            audio.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+        }
+    }
+
+    private void reEnableSound() {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+
+        SharedPreferences sharedPref = this.getApplicationContext().getSharedPreferences(
+                getString(R.string.current_recordings_preferences_key),
+                Context.MODE_PRIVATE);
+
+        if (settings.getBoolean("disable_sound", false)) {
+            // Record system volume before app was started
+            AudioManager audio = (AudioManager)this.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+            int volume = sharedPref.getInt(this.getString(R.string.pre_start_volume), 0);
+            // Set to silent & vibrate
+            audio.setStreamVolume(AudioManager.STREAM_SYSTEM, volume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         }
     }
 
