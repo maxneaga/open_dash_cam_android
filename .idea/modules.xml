@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/OpenDashCam.iml" filepath="$PROJECT_DIR$/OpenDashCam.iml" />
       <module fileurl="file://$PROJECT_DIR$/mobile/mobile.iml" filepath="$PROJECT_DIR$/mobile/mobile.iml" />
+      <module fileurl="file://$PROJECT_DIR$/open_dash_cam_android.iml" filepath="$PROJECT_DIR$/open_dash_cam_android.iml" />
     </modules>
   </component>
 </project>
