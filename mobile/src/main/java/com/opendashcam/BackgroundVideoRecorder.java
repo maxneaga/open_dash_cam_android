@@ -138,10 +138,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                     // Let MediaStore Content Provider know about the new file
                     sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(currentVideoFile))));
 
-                    initMediaRecorder(surfaceHolder);
-
-                    try { mediaRecorder.prepare(); } catch (Exception e) {}
-                    mediaRecorder.start();
+                    surfaceCreated(surfaceHolder);
                 }
             }
         });
