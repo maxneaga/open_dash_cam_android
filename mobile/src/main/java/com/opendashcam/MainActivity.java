@@ -138,6 +138,7 @@ public class MainActivity extends Activity {
      * Otherwise starts default navigation app.
      */
     private void launchNavigation() {
+        String googleMapsPackage = "com.google.android.apps.maps";
         String androidAutoPackage = "com.google.android.projection.gearhead";
 
         PackageManager packageManager = getPackageManager();
@@ -149,10 +150,11 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
         if (applicationInfo == null) {
-            // not installed, open default navigation app
-            Uri location = Uri.parse("geo:0,0?free=1&mode=d&entry=fnls");
-            Intent mapIntent = new Intent(Intent.ACTION_VIEW, location);
-            startActivity(mapIntent);
+            // not installed, open Google Maps in driving mode
+            Intent intent = getPackageManager().getLaunchIntentForPackage(googleMapsPackage);
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("google.navigation:/?free=1&mode=d&entry=fnls"));
+            startActivity(intent);;
         } else {
             // Installed, open Android Auto
             Intent launchIntent = getPackageManager().getLaunchIntentForPackage(androidAutoPackage);
