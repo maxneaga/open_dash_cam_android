@@ -7,8 +7,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.provider.Settings;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
@@ -23,7 +23,7 @@ public class MainActivity extends Activity {
 
     public static final int MULTIPLE_PERMISSIONS_RESPONSE_CODE = 10;
 
-    String[] permissions = new String[]{
+    String[] permissions= new String[]{
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -48,19 +48,19 @@ public class MainActivity extends Activity {
         if (!isEnoughStorage()) {
             Util.showToastLong(this.getApplicationContext(),
                     "Not enough storage to run the app. Clean up space for recordings.");
-        } else {
+        }
+        else {
             // Launch navigation app
-            if (launchNavigation()) {
-                launchNavigation();
+            launchNavigation();
 
-                // Start recording video
-                Intent videoIntent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
-                startService(videoIntent);
+            // Start recording video
+            Intent videoIntent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
+            startService(videoIntent);
 
-                // Start widget service
-                Intent i = new Intent(getApplicationContext(), WidgetService.class);
-                startService(i);
-            }
+            // Start widget service
+            Intent i = new Intent(getApplicationContext(), WidgetService.class);
+            startService(i);
+
         }
         // Close the activity, we don't have an app window
         finish();
@@ -92,11 +92,11 @@ public class MainActivity extends Activity {
     }
 
 
-    private boolean checkPermissions() {
+    private  boolean checkPermissions() {
         int result;
         List<String> listPermissionsNeeded = new ArrayList<>();
-        for (String p : permissions) {
-            result = ActivityCompat.checkSelfPermission(MainActivity.this, p);
+        for (String p:permissions) {
+            result = ActivityCompat.checkSelfPermission(MainActivity.this,p);
             if (result != PackageManager.PERMISSION_GRANTED) {
                 listPermissionsNeeded.add(p);
             }
@@ -104,7 +104,7 @@ public class MainActivity extends Activity {
         if (!listPermissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions(this,
                     listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]),
-                    MULTIPLE_PERMISSIONS_RESPONSE_CODE);
+                    MULTIPLE_PERMISSIONS_RESPONSE_CODE );
             return false;
         }
         return true;
@@ -114,8 +114,8 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case MULTIPLE_PERMISSIONS_RESPONSE_CODE: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            case MULTIPLE_PERMISSIONS_RESPONSE_CODE:{
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                     // permissions granted
                     startApp();
                 } else {
@@ -137,60 +137,34 @@ public class MainActivity extends Activity {
      * Checks if Android Auto is installed and starts it as a background navigation app.
      * Otherwise starts default navigation app.
      */
-    private boolean launchNavigation() {
+    private void launchNavigation() {
         String androidAutoPackage = "com.google.android.projection.gearhead";
 
-
+        PackageManager packageManager = getPackageManager();
         ApplicationInfo applicationInfo = null;
         // Check if Android Auto is installed on the device
         try {
-            PackageManager packageManager = getPackageManager();
             applicationInfo = packageManager.getApplicationInfo(androidAutoPackage, 0);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
         if (applicationInfo == null) {
             // not installed, open default navigation app
-            try {
-                Uri location = Uri.parse("geo:0,0?free=1&mode=d&entry=fnls");
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, location);
-                startActivity(mapIntent);
-            } catch (Exception e) {
-                e.printStackTrace();
-                redirectToMaps();
-                return false;
-            }
+            Uri location = Uri.parse("geo:0,0?free=1&mode=d&entry=fnls");
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, location);
+            startActivity(mapIntent);
         } else {
             // Installed, open Android Auto
-            try {
-                Intent launchIntent = getPackageManager().getLaunchIntentForPackage(androidAutoPackage);
-                startActivity(launchIntent);
-            } catch (Exception e) {
-                e.printStackTrace();
-                redirectToMaps();
-                return false;
-            }
+            Intent launchIntent = getPackageManager().getLaunchIntentForPackage(androidAutoPackage);
+            startActivity(launchIntent);
         }
-
-        return true;
     }
 
-    private void redirectToMaps() {
-
-        final String appPackageName = "com.google.android.apps.maps"; // getPackageName() from Context or Activity object
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
-        } catch (android.content.ActivityNotFoundException anfe) {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
-        }
-
-    }
-
-    private boolean isEnoughStorage() {
+    private boolean isEnoughStorage(){
         long appFolderSie = getFolderSize(new File(Util.getVideosDirectoryPath()));
-        if (getFreeSpaceExternalStorage() + appFolderSie < (Util.getQuota() + 250)) {
+        if(getFreeSpaceExternalStorage() + appFolderSie < (Util.getQuota() + 250)){
             return false;
-        } else {
+        }else {
             return true;
         }
     }
