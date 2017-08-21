@@ -138,10 +138,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                     // Let MediaStore Content Provider know about the new file
                     sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(currentVideoFile))));
 
-                    initMediaRecorder(surfaceHolder);
-
-                    try { mediaRecorder.prepare(); } catch (Exception e) {}
-                    mediaRecorder.start();
+                    surfaceCreated(surfaceHolder);
                 }
             }
         });
@@ -232,8 +229,11 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                     getString(R.string.pre_start_volume),
                     volume);
             editor.commit();
-            // Set to silent & vibrate
-            audio.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            // Only make change if not in silent
+            if (volume > 0) {
+                // Set to silent & vibrate
+                audio.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            }
         }
     }
 
@@ -248,8 +248,11 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
             // Record system volume before app was started
             AudioManager audio = (AudioManager)this.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
             int volume = sharedPref.getInt(this.getString(R.string.pre_start_volume), 0);
-            // Set to silent & vibrate
-            audio.setStreamVolume(AudioManager.STREAM_SYSTEM, volume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            // Only make change if not in silent
+            if (volume > 0) {
+                // Set to silent & vibrate
+                audio.setStreamVolume(AudioManager.STREAM_SYSTEM, volume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+            }
         }
     }
 
