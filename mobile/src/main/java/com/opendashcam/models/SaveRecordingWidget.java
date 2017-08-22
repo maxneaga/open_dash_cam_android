@@ -17,7 +17,7 @@ public class SaveRecordingWidget extends Widget {
         // Set image for the widget
         widgetDrawableResource = R.drawable.save_recording_widget;
 
-        // @TODO: Add save recording functionality
+        // Save current and previous recordings
         widget.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
