@@ -135,7 +135,7 @@ public class MainActivity extends Activity {
 
     /**
      * Checks if Android Auto is installed and starts it as a background navigation app.
-     * Otherwise starts default navigation app.
+     * Otherwise starts Google Maps in driving mode.
      */
     private void launchNavigation() {
         String googleMapsPackage = "com.google.android.apps.maps";
