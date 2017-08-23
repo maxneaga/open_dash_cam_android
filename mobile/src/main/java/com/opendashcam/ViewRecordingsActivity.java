@@ -46,6 +46,7 @@ public class ViewRecordingsActivity extends AppCompatActivity {
     ArrayList<Recording> recordings;
 
     private Context context;
+    private BroadcastReceiver mReceiver;
 
     /**
      * Sets RecyclerView for gallery
@@ -69,7 +70,23 @@ public class ViewRecordingsActivity extends AppCompatActivity {
         recordings = getDataSet();
         adapter = new ViewRecordingsRecyclerViewAdapter(context, recordings);
         recyclerView.setAdapter(adapter);
-        LocalBroadcastManager.getInstance(context).registerReceiver(new BroadcastReceiver() {
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(mReceiver);
+        mReceiver = null;
+    }
+
+    /**
+     * Adds onClick listener to play the recording
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 recyclerView.post(new Runnable() {
@@ -83,16 +100,8 @@ public class ViewRecordingsActivity extends AppCompatActivity {
                     }
                 });
             }
-        }, new IntentFilter(Recording.ACTION_DATA_LOADED));
-
-    }
-
-    /**
-     * Adds onClick listener to play the recording
-     */
-    @Override
-    protected void onResume() {
-        super.onResume();
+        };
+        LocalBroadcastManager.getInstance(context).registerReceiver(mReceiver, new IntentFilter(Recording.ACTION_DATA_LOADED));
         ((ViewRecordingsRecyclerViewAdapter) adapter).setOnItemClickListener(new ViewRecordingsRecyclerViewAdapter.RecordingClickListener() {
             @Override
             public void onItemClick(int position, View v) {
