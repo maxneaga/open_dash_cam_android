@@ -2,10 +2,13 @@ package com.opendashcam.models;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.provider.MediaStore;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.opendashcam.DBContract;
 import com.opendashcam.DBHelper;
@@ -19,29 +22,70 @@ import java.util.Date;
  */
 
 public class Recording {
+    public static final String ACTION_DATA_LOADED = "recording_data_loaded";
     private String id;
     private String filePath;
     private String filename;
     private String dateSaved;
     private String timeSaved;
-    private Bitmap thumbnail;
+    //    private Bitmap thumbnail;
     private boolean starred;
+    private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d");
+    private static SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
+    private static HandlerThread thread = new HandlerThread("recording_data_fetcher");
+    private static final Handler backgroundThread;
+    private static final Handler mainThread = new Handler(Looper.getMainLooper());
 
-    public Recording(Context context, int id, String filePath) {
+    static {
+        thread.start();
+        backgroundThread = new Handler(thread.getLooper());
+    }
+
+    private static long lastSentTime = 0;
+
+    public Recording(final Context context, int id, String filePath, boolean lazyLoad) {
         this.id = Integer.toString(id);
         this.filePath = filePath;
         this.filename = new File(filePath).getName();
+        if (lazyLoad) {
+            backgroundThread.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    init(context);
+                    if (System.currentTimeMillis() - lastSentTime > 2000) {
+                        lastSentTime = System.currentTimeMillis();
+                        LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(ACTION_DATA_LOADED));
+                    } else {
+                        mainThread.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (System.currentTimeMillis() - lastSentTime > 2000) {
+                                    lastSentTime = System.currentTimeMillis();
+                                    LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(ACTION_DATA_LOADED));
+                                }
+                            }
+                        }, 1000);
+                    }
+                }
+            }, 1000);
+        } else {
+            init(context);
+        }
+    }
 
-        // Get video thumbnail
-        thumbnail = MediaStore.Video.Thumbnails.getThumbnail(
-                context.getContentResolver(),
-                id, MediaStore.Video.Thumbnails.MINI_KIND, null);
-
+    private void init(Context context) {
         // Get dates for display
         getDatesFromFile();
 
         // Check if starred
         starred = isStarred(context);
+    }
+
+    public Recording(Context context, int id, String filePath) {
+        this.id = Integer.toString(id);
+        this.filePath = filePath;
+        this.filename = new File(filePath).getName();
+        init(context);
     }
 
     //
@@ -59,9 +103,9 @@ public class Recording {
         return timeSaved;
     }
 
-    public Bitmap getThumbnail() {
-        return thumbnail;
-    }
+//    public Bitmap getThumbnail() {
+//        return thumbnail;
+//    }
 
     public boolean getStarredStatus() {
         return starred;
@@ -79,7 +123,7 @@ public class Recording {
                 db,
                 DBContract.StarredRecording.TABLE_NAME,
                 DBContract.StarredRecording.COLUMN_NAME_FILE + " = ?",
-                new String[] {filename}
+                new String[]{filename}
         );
 
         if (numRowsWithFilename > 0) {
@@ -92,9 +136,10 @@ public class Recording {
     /**
      * Checks/unchecks a recording as starred in DB. Intended to be called by
      * OnCheckedChangeListener when video is starred/unstarred by the user.
-     * @param context       Application context
-     * @param isChecked     Whether or not checkbox was marked as checked
-     * @return              True when marked as checked in DB, False otherwise
+     *
+     * @param context   Application context
+     * @param isChecked Whether or not checkbox was marked as checked
+     * @return True when marked as checked in DB, False otherwise
      */
     public boolean toggleStar(Context context, boolean isChecked) {
         // Get DB helper
@@ -116,7 +161,7 @@ public class Recording {
         } else {
             // Define "where" DB query
             String selection = DBContract.StarredRecording.COLUMN_NAME_FILE + " LIKE ?";
-            String[] selectionArgs = { filename };
+            String[] selectionArgs = {filename};
 
             starred = false;
 
@@ -128,10 +173,8 @@ public class Recording {
     }
 
     private void getDatesFromFile() {
-        if(filePath != null && !filePath.isEmpty()) {
+        if (filePath != null && !filePath.isEmpty()) {
             File file = new File(filePath);
-            SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d");
-            SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
             Date lastModDate = new Date(file.lastModified());
             dateSaved = DATE_FORMAT.format(lastModDate);
             timeSaved = TIME_FORMAT.format(lastModDate);
@@ -139,5 +182,9 @@ public class Recording {
             dateSaved = "Video " + id;
             timeSaved = "";
         }
+    }
+
+    public String getId() {
+        return id;
     }
 }

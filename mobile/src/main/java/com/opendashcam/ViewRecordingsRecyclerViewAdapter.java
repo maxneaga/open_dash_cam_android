@@ -1,8 +1,10 @@
 package com.opendashcam;
 
 import android.content.Context;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.opendashcam.models.Recording;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -28,10 +31,13 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
     private ArrayList<Recording> recordings;
     private static RecordingClickListener recordingClickListener;
     private Context context;
+    private int width, height;
 
     public ViewRecordingsRecyclerViewAdapter(Context appContext, ArrayList<Recording> myDataset) {
         recordings = myDataset;
         context = appContext;
+        width = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 150, context.getResources().getDisplayMetrics());
+        height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, context.getResources().getDisplayMetrics());
     }
 
     public static class RecordingHolder extends RecyclerView.ViewHolder
@@ -47,7 +53,7 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
             thumbnail = (ImageView) itemView.findViewById(R.id.thumbnail);
             label = (TextView) itemView.findViewById(R.id.recordingDate);
             dateTime = (TextView) itemView.findViewById(R.id.recordingTime);
-            starred =  (CheckBox) itemView.findViewById(R.id.starred);
+            starred = (CheckBox) itemView.findViewById(R.id.starred);
             Log.i(LOG_TAG, "Add Listener");
             itemView.setOnClickListener(this);
         }
@@ -64,7 +70,7 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
 
     @Override
     public RecordingHolder onCreateViewHolder(ViewGroup parent,
-                                               int viewType) {
+                                              int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.view_recordings_row, parent, false);
 
@@ -74,7 +80,17 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
 
     @Override
     public void onBindViewHolder(RecordingHolder holder, int position) {
-        holder.thumbnail.setImageBitmap(recordings.get(position).getThumbnail());
+        Recording rec = recordings.get(position);
+//        holder.thumbnail.setImageBitmap(rec.getThumbnail());
+        String sArtworkUri = Uri.withAppendedPath(VideoRequestHandler.THUMBNAIL_IDENTIFIER_URI, String.valueOf(rec.getId())).toString();
+        Picasso.with(holder.itemView.getContext())
+                .load(sArtworkUri)
+                .resize(width, height)
+                .noFade().centerCrop()
+                .error(R.drawable.quit_widget)
+                .placeholder(R.drawable.ic_videocam_red_128dp)
+                .into(holder.thumbnail);
+
         holder.label.setText(recordings.get(position).getDateSaved());
         holder.dateTime.setText(recordings.get(position).getTimeSaved());
         holder.starred.setChecked(recordings.get(position).getStarredStatus());
@@ -88,7 +104,7 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
     CompoundButton.OnCheckedChangeListener starredListener = new CompoundButton.OnCheckedChangeListener() {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if (buttonView.isPressed()) {
-                Recording recording = recordings.get((Integer)buttonView.getTag());
+                Recording recording = recordings.get((Integer) buttonView.getTag());
                 recording.toggleStar(context, isChecked);
             }
         }
