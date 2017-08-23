@@ -34,4 +34,6 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:25.3.1'
     compile 'com.android.support:support-v4:25.3.1'
     testCompile 'junit:junit:4.12'
+    // https://mvnrepository.com/artifact/com.squareup.picasso/picasso
+    compile group: 'com.squareup.picasso', name: 'picasso', version: '2.5.2'
 }
