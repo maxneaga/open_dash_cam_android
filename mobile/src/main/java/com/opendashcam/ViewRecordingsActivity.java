@@ -1,11 +1,15 @@
 package com.opendashcam;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
-import android.provider.MediaStore;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -42,9 +46,11 @@ public class ViewRecordingsActivity extends AppCompatActivity {
     ArrayList<Recording> recordings;
 
     private Context context;
+    private BroadcastReceiver mReceiver;
 
     /**
      * Sets RecyclerView for gallery
+     *
      * @param savedInstanceState
      */
     @Override
@@ -52,9 +58,6 @@ public class ViewRecordingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = getApplicationContext();
         setContentView(R.layout.activity_view_recordings);
-
-        // Run garbage collection
-        System.gc();
 
         // set path
         contentUri = MEDIA_EXTERNAL_CONTENT_URI;
@@ -67,6 +70,14 @@ public class ViewRecordingsActivity extends AppCompatActivity {
         recordings = getDataSet();
         adapter = new ViewRecordingsRecyclerViewAdapter(context, recordings);
         recyclerView.setAdapter(adapter);
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(mReceiver);
+        mReceiver = null;
     }
 
     /**
@@ -75,6 +86,22 @@ public class ViewRecordingsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        mReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                recyclerView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (recyclerView.getScrollState() == RecyclerView.SCROLL_STATE_IDLE) {
+                            adapter.notifyDataSetChanged();
+                        } else {
+                            recyclerView.postDelayed(this, 1000);
+                        }
+                    }
+                });
+            }
+        };
+        LocalBroadcastManager.getInstance(context).registerReceiver(mReceiver, new IntentFilter(Recording.ACTION_DATA_LOADED));
         ((ViewRecordingsRecyclerViewAdapter) adapter).setOnItemClickListener(new ViewRecordingsRecyclerViewAdapter.RecordingClickListener() {
             @Override
             public void onItemClick(int position, View v) {
@@ -91,20 +118,21 @@ public class ViewRecordingsActivity extends AppCompatActivity {
 
     /**
      * Populates array with Recording objects
+     *
      * @return ArrayList<Recording>
      */
     private ArrayList<Recording> getDataSet() {
         ArrayList results = new ArrayList<Recording>();
 
         //Here we set up a string array of the thumbnail ID column we want to get back
-        String [] columns={_ID, MEDIA_DATA};
+        String[] columns = {_ID, MEDIA_DATA};
         // Now we create the cursor pointing to the external thumbnail store
         cursor = managedQuery(contentUri,
                 columns, // Which columns to return
                 MEDIA_DATA + " like ? ",       // WHERE clause; which rows to return (all rows)
-                new String[] {"%OpenDashCam%"},       // WHERE clause selection arguments (none)
+                new String[]{"%OpenDashCam%"},       // WHERE clause selection arguments (none)
                 ORDER_BY); // Order-by clause (descending by date added)
-        int count= cursor.getCount();
+        int count = cursor.getCount();
         // We now get the column index of the thumbnail id
         columnIndex = cursor.getColumnIndex(_ID);
         // Meta data
@@ -112,8 +140,7 @@ public class ViewRecordingsActivity extends AppCompatActivity {
         //move position to first element
         cursor.moveToFirst();
 
-        for(int i=0;i<count;i++)
-        {
+        for (int i = 0; i < count; i++) {
             // Get id
             int id = cursor.getInt(columnIndex);
 
@@ -121,7 +148,7 @@ public class ViewRecordingsActivity extends AppCompatActivity {
             String filePath = cursor.getString(columnMetaIndex);
 
             // Add recording object to the arraylist
-            Recording recording = new Recording(context, id, filePath);
+            Recording recording = new Recording(context, id, filePath, true);
             results.add(i, recording);
 
             cursor.moveToNext();
