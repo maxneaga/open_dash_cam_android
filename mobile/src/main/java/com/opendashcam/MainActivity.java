@@ -57,7 +57,7 @@ public class MainActivity extends Activity {
             Intent videoIntent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
             startService(videoIntent);
 
-            // Start widget service
+            // Start rootView service
             Intent i = new Intent(getApplicationContext(), WidgetService.class);
             startService(i);
 

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="vertical_widget_distance">24dp</dimen>
+    <dimen name="horizontal_widget_distance">16dp</dimen>
+    <dimen name="layout_min_width">300dp</dimen>
+    <dimen name="layout_min_height">420dp</dimen>
+    <dimen name="horizontal_widget_distance_large">48dp</dimen>
+</resources>

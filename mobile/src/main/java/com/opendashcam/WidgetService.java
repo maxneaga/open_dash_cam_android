@@ -3,30 +3,14 @@ package com.opendashcam;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import android.view.Gravity;
 import android.view.WindowManager;
 
-import com.opendashcam.models.CamWidget;
-import com.opendashcam.models.QuitWidget;
-import com.opendashcam.models.SaveRecordingWidget;
-import com.opendashcam.models.SettingsWidget;
-import com.opendashcam.models.ViewRecordingsWidget;
 import com.opendashcam.models.Widget;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class WidgetService extends Service {
 
     private WindowManager windowManager;
-    private WindowManager.LayoutParams layoutParams;
-
-    private CamWidget cameraWidget;
-    private SettingsWidget settingsWidget;
-    private SaveRecordingWidget saveRecordingWidget;
-    private ViewRecordingsWidget viewRecordingsWidget;
-    private QuitWidget quitWidget;
-    List<Widget> togglableWidgets = new ArrayList<Widget>();
+    private Widget overlayWidget;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -40,46 +24,17 @@ public class WidgetService extends Service {
         super.onCreate();
 
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        overlayWidget = new Widget(this, windowManager);
+        overlayWidget.show();
 
-        // ***
-        // Add widgets
-        // ***
-        // Quit
-        quitWidget = new QuitWidget(this, windowManager);
-        quitWidget.setPosition(Gravity.CENTER_VERTICAL | Gravity.LEFT, 16, 290);
-        togglableWidgets.add(quitWidget);
-
-        // Settings
-        settingsWidget = new SettingsWidget(this, windowManager);
-        settingsWidget.setPosition(Gravity.CENTER_VERTICAL | Gravity.LEFT, 16, 150);
-        togglableWidgets.add(settingsWidget);
-
-        // Save recording
-        saveRecordingWidget = new SaveRecordingWidget(this, windowManager);
-        saveRecordingWidget.setPosition(Gravity.CENTER_VERTICAL | Gravity.LEFT, 16, -150);
-        togglableWidgets.add(saveRecordingWidget);
-
-        // View recordings
-        viewRecordingsWidget = new ViewRecordingsWidget(this, windowManager);
-        viewRecordingsWidget.setPosition(Gravity.CENTER_VERTICAL | Gravity.LEFT, 16, -290);
-        togglableWidgets.add(viewRecordingsWidget);
-
-        // Camera (primary widget)
-        cameraWidget = new CamWidget(this, windowManager, togglableWidgets.toArray(new Widget[togglableWidgets.size()]));
-        cameraWidget.setPosition(Gravity.CENTER_VERTICAL | Gravity.LEFT, 0, 0);
-        cameraWidget.show();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
-        // Remove widget views from display
-        viewRecordingsWidget.hide();
-        saveRecordingWidget.hide();
-        cameraWidget.hide();
-        settingsWidget.hide();
-        quitWidget.hide();
+        // Remove rootView views from display
+        overlayWidget.hide();
 
         // Close DB connection
         DBHelper dbHelper = DBHelper.getInstance(this);
@@ -90,13 +45,5 @@ public class WidgetService extends Service {
         startMain.addCategory(Intent.CATEGORY_HOME);
         startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(startMain);
-    }
-
-    // Hides the visibility of non-primary widgets
-    public void hideTogglableWidgets() {
-        Widget togglableWidgetsArray[] = togglableWidgets.toArray(new Widget[togglableWidgets.size()]);
-        for (int i = 0; i < togglableWidgetsArray.length; i++) {
-            togglableWidgetsArray[i].hide();
-        }
     }
 }

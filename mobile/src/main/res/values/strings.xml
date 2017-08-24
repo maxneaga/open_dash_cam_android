@@ -4,7 +4,7 @@
     <string name="previous_recording_preferences_key">PREVIOUS_RECORDING</string>
     <string name="current_recording_preferences_key">CURRENT_RECORDING</string>
     <string name="pre_start_volume">PRE_START_VOLUME</string>
-    <!-- Save recording widget -->
+    <!-- Save recording rootView -->
     <string name="save_recording_success_msg">Current recording marked as starred.
 Starred recordings will not be deleted.</string>
     <string name="title_activity_settings">Settings</string>
