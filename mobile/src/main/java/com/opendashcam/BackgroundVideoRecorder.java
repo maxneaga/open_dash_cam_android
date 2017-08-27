@@ -128,7 +128,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
         mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
         // Store previous and current recording filenames, so that they may be retrieved by the
-        // SaveRecordingWidget
+        // SaveRecording button
 
         // previous recording = currentVideoFile
         editor.putString(
