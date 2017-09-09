@@ -61,5 +61,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|start"
         android:background="@android:color/transparent"
-        android:src="@drawable/cam_widget" />
+        android:src="@drawable/cam_widget"
+        android:alpha="0.85"/>
 </FrameLayout>
