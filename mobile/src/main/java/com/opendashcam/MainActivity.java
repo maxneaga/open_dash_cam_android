@@ -81,8 +81,8 @@ public class MainActivity extends Activity {
             // Start rootView service
             Intent i = new Intent(getApplicationContext(), WidgetService.class);
             startService(i);
-
         }
+        
         // Close the activity, we don't have an app window
         finish();
     }
@@ -155,31 +155,18 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Checks if Android Auto is installed and starts it as a background navigation app.
-     * Otherwise starts Google Maps in driving mode.
+     * Starts Google Maps in driving mode.
      */
     private void launchNavigation() {
         String googleMapsPackage = "com.google.android.apps.maps";
-        String androidAutoPackage = "com.google.android.projection.gearhead";
 
-        PackageManager packageManager = getPackageManager();
-        ApplicationInfo applicationInfo = null;
-        // Check if Android Auto is installed on the device
         try {
-            applicationInfo = packageManager.getApplicationInfo(androidAutoPackage, 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        if (applicationInfo == null) {
-            // not installed, open Google Maps in driving mode
             Intent intent = getPackageManager().getLaunchIntentForPackage(googleMapsPackage);
             intent.setAction(Intent.ACTION_VIEW);
             intent.setData(Uri.parse("google.navigation:/?free=1&mode=d&entry=fnls"));
             startActivity(intent);;
-        } else {
-            // Installed, open Android Auto
-            Intent launchIntent = getPackageManager().getLaunchIntentForPackage(androidAutoPackage);
-            startActivity(launchIntent);
+        } catch (Exception e) {
+            return;
         }
     }
 
