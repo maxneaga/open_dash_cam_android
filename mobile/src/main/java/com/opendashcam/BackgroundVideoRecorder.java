@@ -51,7 +51,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
     @Override
     public void onCreate() {
-        long startTime = System.currentTimeMillis();
+        //long startTime = System.currentTimeMillis();
         thread = new HandlerThread("io_processor_thread");
         thread.start();
         backgroundThread = new Handler(thread.getLooper());
@@ -82,9 +82,11 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         windowManager.addView(surfaceView, layoutParams);
         surfaceView.getHolder().addCallback(this);
 
-        long elapsedTime = System.currentTimeMillis() - startTime;
-        Log.i("DEBUG", "onCreate Time: " + (TimeUnit.MILLISECONDS.convert(elapsedTime, TimeUnit.MILLISECONDS)) + " milliseconds");
+        // Set shutter sound based on preferences
+        disableSound(editor);
 
+        //long elapsedTime = System.currentTimeMillis() - startTime;
+        //Log.i("DEBUG", "onCreate Time: " + (TimeUnit.MILLISECONDS.convert(elapsedTime, TimeUnit.MILLISECONDS)) + " milliseconds");
     }
 
     // Method called right after Surface created (initializing and starting MediaRecorder)
@@ -149,9 +151,6 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
         mediaRecorder.setOutputFile(currentVideoFile);
         mediaRecorder.setMaxDuration(Util.getMaxDuration());
-
-        // Set shutter sound based on preferences
-        disableSound(editor);
 
         // When maximum video length reached
         mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
