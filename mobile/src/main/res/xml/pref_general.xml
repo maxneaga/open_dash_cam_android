@@ -13,6 +13,12 @@
         android:summary="@string/pref_description_silent"
         android:title="@string/pref_title_silent" />
 
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="start_maps_in_background"
+        android:summary="@string/pref_description_start_maps_in_background"
+        android:title="@string/pref_title_start_maps_in_background" />
+
     <Preference
         android:key="delete_recordings"
         android:summary="@string/pref_description_delete_recordings"

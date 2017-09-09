@@ -5,12 +5,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.Settings;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
@@ -71,14 +71,17 @@ public class MainActivity extends Activity {
 
             // Otherwise
 
-            // Launch navigation app
-            launchNavigation();
+            // Launch navigation app, if settings say so
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+            if (settings.getBoolean("start_maps_in_background", true) == true) {
+                launchNavigation();
+            }
 
             // Start recording video
             Intent videoIntent = new Intent(getApplicationContext(), BackgroundVideoRecorder.class);
             startService(videoIntent);
 
-            // Start rootView service
+            // Start rootView service (display the widgets)
             Intent i = new Intent(getApplicationContext(), WidgetService.class);
             startService(i);
         }
