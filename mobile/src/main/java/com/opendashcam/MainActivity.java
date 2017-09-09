@@ -2,7 +2,9 @@ package com.opendashcam;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -50,6 +52,25 @@ public class MainActivity extends Activity {
                     "Not enough storage to run the app. Clean up space for recordings.");
         }
         else {
+            // Check if first launch => show tutorial
+            // Access shared references file
+            SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
+                    getString(R.string.db_first_launch_complete_flag),
+                    Context.MODE_PRIVATE);
+
+            String firstLaunchFlag = sharedPref.
+                    getString(getString(R.string.db_first_launch_complete_flag),
+                            "null");
+
+            if (firstLaunchFlag == "null") {
+                Intent intent = new Intent(getApplicationContext(), WelcomeActivity.class);
+                startActivity(intent);
+                finish();
+                return;
+            }
+
+            // Otherwise
+
             // Launch navigation app
             launchNavigation();
 

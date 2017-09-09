@@ -1,9 +1,32 @@
 <resources>
     <string name="app_name">Open Dash Cam</string>
+
+    <!-- DB Keys -->
+    <string name="db_first_launch_complete_flag">FIRST_LAUNCH_FLAG</string>
     <string name="current_recordings_preferences_key">com.opendashcam.CURRENT_RECORDINGS</string>
     <string name="previous_recording_preferences_key">PREVIOUS_RECORDING</string>
     <string name="current_recording_preferences_key">CURRENT_RECORDING</string>
     <string name="pre_start_volume">PRE_START_VOLUME</string>
+
+    <!-- Welcome view -->
+    <string name="app_pitchline">Open Dash Cam is your\n eyewitness on the road.</string>
+    <string name="app_brief_description">While navigating with Google Maps or any other
+        application in the background, Open Dash Cam will record what happens on the road using
+        your phone camera.</string>
+
+    <string name="recording_automatic_heading">Recording starts automatically</string>
+    <string name="recording_automatic_desc">When you start the app, the red \"REC\" widget will
+        appear, indicating that video recording has started.\n\n
+        Google Maps will start in the background, so you can navigate while the dash cam is
+        recording.</string>
+
+    <string name="other_widgets_heading">\"REC\" opens app menu</string>
+    <string name="other_widgets_view_rec_desc">\"View recordings\" will show all videos
+        recorded</string>
+    <string name="other_widgets_save_rec_desc">Use \"Save recording\" if you captured an
+        important moment</string>
+    <string name="btn_start_driving">Start driving</string>
+
     <!-- Save recording rootView -->
     <string name="save_recording_success_msg">Current recording marked as starred.
 Starred recordings will not be deleted.</string>
@@ -25,5 +48,8 @@ Starred recordings will not be deleted.</string>
         Cam
     </string>
     <string name="pref_delete_recordings_confirmation">All recordings deleted</string>
+    <string name="title_activity_welcome">WelcomeActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 
 </resources>
