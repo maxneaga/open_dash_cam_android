@@ -1,10 +1,11 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-
+    <!--
     <SwitchPreference
         android:defaultValue="false"
         android:key="rotate"
         android:summary="@string/pref_description_rotate"
         android:title="@string/pref_title_rotate" />
+    -->
 
     <SwitchPreference
         android:defaultValue="true"
