@@ -49,7 +49,8 @@ public class MainActivity extends Activity {
 
         if (!isEnoughStorage()) {
             Util.showToastLong(this.getApplicationContext(),
-                    "Not enough storage to run the app. Clean up space for recordings.");
+                    "Not enough storage to run the app (Need " + String.valueOf(Util.getQuota()+250)
+                    + "MB). Clean up space for recordings.");
         }
         else {
             // Check if first launch => show tutorial
