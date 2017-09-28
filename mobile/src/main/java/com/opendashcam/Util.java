@@ -18,8 +18,8 @@ import java.io.File;
 public final class Util {
     private static String VIDEOS_DIRECTORY_NAME = "OpenDashCam";
     private static String VIDEOS_DIRECTORY_PATH = Environment.getExternalStorageDirectory()+"/"+VIDEOS_DIRECTORY_NAME+"/";
-    private static int QUOTA = 1250; // megabytes
-    private static int QUOTA_WARNING_THRESHOLD = 250; // megabytes
+    private static int QUOTA = 750; // megabytes
+    private static int QUOTA_WARNING_THRESHOLD = 200; // megabytes
     private static int MAX_DURATION = 45000; // 45 seconds
 
     public static String getVideosDirectoryPath() {
