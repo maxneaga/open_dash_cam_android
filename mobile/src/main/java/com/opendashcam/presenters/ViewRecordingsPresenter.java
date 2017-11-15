@@ -1,13 +1,9 @@
 package com.opendashcam.presenters;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Handler;
 import android.provider.MediaStore;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.opendashcam.OpenDashApp;
@@ -39,7 +35,7 @@ public class ViewRecordingsPresenter implements IViewRecordings.Presenter {
     private final static String ORDER_BY = MediaStore.Video.Media._ID + " DESC";
 
     private IViewRecordings.View mView;
-    private BroadcastReceiver mBroadcastReceiver;
+    private Handler mUpdateListHandler = new Handler();
 
     public ViewRecordingsPresenter(IViewRecordings.View view) {
         mView = view;
@@ -47,16 +43,12 @@ public class ViewRecordingsPresenter implements IViewRecordings.Presenter {
 
     @Override
     public void onStartView() {
-        //update list
-        mView.updateRecordingsList(
-                getDataSet()
-        );
-        registerBroadcastReceiver();
+        startUpdateList();
     }
 
     @Override
     public void onStopView() {
-        unRegisterBroadcastReceiver();
+        stopUpdateList();
     }
 
     @Override
@@ -71,31 +63,28 @@ public class ViewRecordingsPresenter implements IViewRecordings.Presenter {
                 Uri.fromFile(new File(recordingItem.getFilePath())), "video/mp4");
     }
 
-    private void registerBroadcastReceiver() {
-        mBroadcastReceiver = new BroadcastReceiver() {
+    private void startUpdateList() {
+        if (mUpdateListHandler == null) mUpdateListHandler = new Handler();
+        Runnable runnable = new Runnable() {
             @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent != null ? intent.getAction() : null;
-
-                //update recordings list when video has been recorded
-                if (action != null && action.equals(Recording.ACTION_DATA_LOADED)) {
-                    mView.updateRecordingsList(
-                            getDataSet()
-                    );
-                    Log.d(LOG_TAG_DEBUG, "ViewRecordingsPresenter.onReceive(): update recordings list");
+            public void run() {
+                mView.updateRecordingsList(
+                        getDataSet()
+                );
+                Log.d(LOG_TAG_DEBUG, "ViewRecordingsPresenter.run(): update list");
+                //update list  every 2 seconds
+                if (mUpdateListHandler != null) {
+                    mUpdateListHandler.postDelayed(this, 2000);
                 }
             }
         };
-        LocalBroadcastManager.getInstance(mView.getActivity()).registerReceiver(
-                mBroadcastReceiver,
-                new IntentFilter(Recording.ACTION_DATA_LOADED)
-        );
+        mUpdateListHandler.post(runnable);
     }
 
-    private void unRegisterBroadcastReceiver() {
-        if (mBroadcastReceiver != null) {
-            LocalBroadcastManager.getInstance(mView.getActivity()).unregisterReceiver(mBroadcastReceiver);
-            mBroadcastReceiver = null;
+    private void stopUpdateList() {
+        if (mUpdateListHandler != null) {
+            mUpdateListHandler.removeCallbacksAndMessages(this);
+            mUpdateListHandler = null;
         }
     }
 
@@ -135,7 +124,7 @@ public class ViewRecordingsPresenter implements IViewRecordings.Presenter {
             String filePath = cursor.getString(columnMetaIndex);
 
             // Add recording object to the arraylist
-            Recording recording = new Recording(OpenDashApp.getAppContext(), id, filePath, true);
+            Recording recording = new Recording(OpenDashApp.getAppContext(), id, filePath);
             results.add(i, recording);
 
             cursor.moveToNext();
