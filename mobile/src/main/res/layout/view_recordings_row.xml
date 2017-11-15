@@ -15,16 +15,17 @@
         card_view:contentPadding="10dp">
 
         <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
             <ImageView
                 android:id="@+id/thumbnail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
-                android:layout_marginRight="16dp" />
+                android:layout_marginEnd="16dp"
+                android:contentDescription="@null"/>
 
             <TextView
                 android:id="@+id/recordingDate"
@@ -32,9 +33,9 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 android:layout_marginTop="10dp"
-                android:layout_toRightOf="@+id/thumbnail"
+                android:layout_toEndOf="@+id/thumbnail"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/recordingTime"
@@ -42,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/recordingDate"
                 android:layout_marginTop="10dp"
-                android:layout_toRightOf="@+id/thumbnail"
+                android:layout_toEndOf="@+id/thumbnail"
                 android:textSize="20sp" />
 
             <CheckBox
