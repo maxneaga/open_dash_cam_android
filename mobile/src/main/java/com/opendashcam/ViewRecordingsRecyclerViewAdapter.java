@@ -3,7 +3,6 @@ package com.opendashcam;
 import android.content.Context;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,12 +56,6 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
 
         if (recItem == null) return;
 
-        Log.d("ViewRecordingsPresenter", "ViewRecordingsRecyclerViewAdapter.onBindViewHolder(): item - " + recItem.getId() +
-                ", date - " + recItem.getDateSaved() +
-                ", time - " + recItem.getTimeSaved() +
-                ", starred - " + recItem.getStarredStatus()
-        );
-
         holder.label.setText(recItem.getDateSaved());
         holder.dateTime.setText(recItem.getTimeSaved());
         holder.starred.setChecked(recItem.getStarredStatus());
@@ -101,7 +94,7 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
      * Populate list
      *
      */
-    public void populateList(ArrayList<Recording> myDataset) {
+    void populateList(ArrayList<Recording> myDataset) {
         mRecordingsList.clear();
         mRecordingsList.addAll(myDataset);
         notifyDataSetChanged();

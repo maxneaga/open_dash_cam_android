@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
+              xmlns:card_view="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical">
 
     <android.support.v7.widget.CardView
         android:id="@+id/card_view"
@@ -18,14 +18,20 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <ImageView
-                android:id="@+id/thumbnail"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <FrameLayout
+                android:id="@+id/layout_thumbnail"
+                android:layout_width="150dp"
+                android:layout_height="100dp"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
-                android:layout_marginEnd="16dp"
-                android:contentDescription="@null"/>
+                android:layout_marginEnd="16dp">
+
+                <ImageView
+                    android:id="@+id/thumbnail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@null"/>
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/recordingDate"
@@ -33,7 +39,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 android:layout_marginTop="10dp"
-                android:layout_toEndOf="@+id/thumbnail"
+                android:layout_toEndOf="@+id/layout_thumbnail"
                 android:textSize="20sp"
                 android:textStyle="bold"/>
 
@@ -43,16 +49,16 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/recordingDate"
                 android:layout_marginTop="10dp"
-                android:layout_toEndOf="@+id/thumbnail"
-                android:textSize="20sp" />
+                android:layout_toEndOf="@+id/layout_thumbnail"
+                android:textSize="20sp"/>
 
             <CheckBox
                 android:id="@+id/starred"
                 style="@android:style/Widget.Material.Light.CompoundButton.Star"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_alignParentEnd="true" />
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"/>
 
         </RelativeLayout>
     </android.support.v7.widget.CardView>
