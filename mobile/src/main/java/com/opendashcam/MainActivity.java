@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 import java.io.File;
@@ -63,7 +64,7 @@ public class MainActivity extends Activity {
                     getString(getString(R.string.db_first_launch_complete_flag),
                             "null");
 
-            if (firstLaunchFlag == "null") {
+            if (TextUtils.isEmpty(firstLaunchFlag)) {
                 Intent intent = new Intent(getApplicationContext(), WelcomeActivity.class);
                 startActivity(intent);
                 finish();
@@ -74,7 +75,7 @@ public class MainActivity extends Activity {
 
             // Launch navigation app, if settings say so
             SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-            if (settings.getBoolean("start_maps_in_background", true) == true) {
+            if (settings.getBoolean("start_maps_in_background", true)) {
                 launchNavigation();
             }
 
