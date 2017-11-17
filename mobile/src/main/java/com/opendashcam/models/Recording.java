@@ -2,13 +2,8 @@ package com.opendashcam.models;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.opendashcam.DBContract;
 import com.opendashcam.DBHelper;
@@ -22,7 +17,6 @@ import java.util.Date;
  */
 
 public class Recording {
-    public static final String ACTION_DATA_LOADED = "recording_data_loaded";
     private String id;
     private String filePath;
     private String filename;
@@ -30,48 +24,10 @@ public class Recording {
     private String timeSaved;
     //    private Bitmap thumbnail;
     private boolean starred;
+    private DBHelper dbHelper;
+
     private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d");
     private static SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
-    private static HandlerThread thread = new HandlerThread("recording_data_fetcher");
-    private static final Handler backgroundThread;
-    private static final Handler mainThread = new Handler(Looper.getMainLooper());
-
-    static {
-        thread.start();
-        backgroundThread = new Handler(thread.getLooper());
-    }
-
-    private static long lastSentTime = 0;
-
-    public Recording(final Context context, int id, String filePath, boolean lazyLoad) {
-        this.id = Integer.toString(id);
-        this.filePath = filePath;
-        this.filename = new File(filePath).getName();
-        if (lazyLoad) {
-            backgroundThread.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    init(context);
-                    if (System.currentTimeMillis() - lastSentTime > 2000) {
-                        lastSentTime = System.currentTimeMillis();
-                        LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(ACTION_DATA_LOADED));
-                    } else {
-                        mainThread.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (System.currentTimeMillis() - lastSentTime > 2000) {
-                                    lastSentTime = System.currentTimeMillis();
-                                    LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent(ACTION_DATA_LOADED));
-                                }
-                            }
-                        }, 1000);
-                    }
-                }
-            }, 1000);
-        } else {
-            init(context);
-        }
-    }
 
     private void init(Context context) {
         // Get dates for display
@@ -82,6 +38,7 @@ public class Recording {
     }
 
     public Recording(Context context, int id, String filePath) {
+        dbHelper = DBHelper.getInstance(context);
         this.id = Integer.toString(id);
         this.filePath = filePath;
         this.filename = new File(filePath).getName();
@@ -116,7 +73,6 @@ public class Recording {
      */
     private boolean isStarred(Context context) {
         // Get DB helper
-        DBHelper dbHelper = DBHelper.getInstance(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         long numRowsWithFilename = DatabaseUtils.queryNumEntries(
@@ -143,7 +99,6 @@ public class Recording {
      */
     public boolean toggleStar(Context context, boolean isChecked) {
         // Get DB helper
-        DBHelper dbHelper = DBHelper.getInstance(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         // If checked, add to the starred recording table in DB
         if (isChecked) {

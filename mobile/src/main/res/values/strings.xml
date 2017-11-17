@@ -54,4 +54,7 @@ Starred recordings will not be deleted.</string>
     </string>
     <string name="pref_delete_recordings_confirmation">All recordings deleted</string>
     <string name="title_activity_welcome">WelcomeActivity</string>
+
+    <string name="recordings_list_empty_message_title">No video recordings yet</string>
+    <string name="recordings_list_empty_message">New videos get recorded continuously every 45 seconds, so you should see one here soon.</string>
 </resources>

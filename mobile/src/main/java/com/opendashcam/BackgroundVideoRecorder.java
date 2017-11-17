@@ -17,6 +17,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
@@ -27,6 +28,7 @@ import com.opendashcam.models.Recording;
 
 import java.io.File;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -102,6 +104,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                 try {
                     mediaRecorder.prepare();
                     mediaRecorder.start();
+                    Log.d("VIDEOCAPTURE", "BackgroundVideoRecorder.run(): start recording");
                 } catch (Exception e) {
                     Log.w("DEBUG", "mediaRecorder.prepare() threw exception for some reason!", e);
                 }
@@ -119,15 +122,46 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
         rotateRecordings(BackgroundVideoRecorder.this, Util.getQuota());
         camera = Camera.open();
+        Camera.Parameters cameraParams = camera != null ? camera.getParameters() : null;
         camera.unlock();
 
+        //define video quality
+        int videoQuality;
+        if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_720P)) {
+            videoQuality = CamcorderProfile.QUALITY_720P;
+        } else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_480P)) {
+            videoQuality = CamcorderProfile.QUALITY_480P;
+        } else {
+            videoQuality = CamcorderProfile.QUALITY_HIGH;
+        }
+
+        // Log.d("VIDEOCAPTURE", "BackgroundVideoRecorder.initMediaRecorder(): quality " + videoQuality);
+
+        //create camcorder profile and set optimal video size
+        CamcorderProfile camcorderProfile = CamcorderProfile.get(videoQuality);
+        if (cameraParams != null) {
+            List<Camera.Size> previewSizes = cameraParams.getSupportedPreviewSizes();
+            List<Camera.Size> videoSizes = cameraParams.getSupportedVideoSizes();
+            WindowManager window = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+
+            if (window != null && previewSizes != null && videoSizes != null) {
+                DisplayMetrics displayMetrics = new DisplayMetrics();
+                window.getDefaultDisplay().getMetrics(displayMetrics);
+
+                //get and set optimal video size
+                Camera.Size videoSize = Util.getOptimalVideoSize(videoSizes, previewSizes, displayMetrics.widthPixels, displayMetrics.heightPixels);
+                //  Log.d("VIDEOCAPTURE", "BackgroundVideoRecorder.initMediaRecorder(): optimal video size - " + videoSize.width + "x" + videoSize.height);
+
+                camcorderProfile.videoFrameWidth = videoSize.width;
+                camcorderProfile.videoFrameHeight = videoSize.height;
+            }
+        }
 
         mediaRecorder = new MediaRecorder();
-
-        mediaRecorder.setCamera(camera); // TODO See if we can remove this line
+        mediaRecorder.setCamera(camera); // TODO See if we can remove this line. We can't, because media recorder should know what camera object will be used
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
+        mediaRecorder.setProfile(camcorderProfile);
         mediaRecorder.setVideoEncodingBitRate(3000000);
         mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
         // Store previous and current recording filenames, so that they may be retrieved by the
@@ -159,7 +193,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
             public void onInfo(MediaRecorder mr, int what, int extra) {
                 if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED && null != mediaRecorder) {
                     mediaRecorder.setOnInfoListener(null);
-                    Log.v("VIDEOCAPTURE", "Maximum Duration Reached");
+                    Log.v("VIDEOCAPTURE", "Maximum Duration Reached. Stop recording.");
                     mediaRecorder.stop();
                     mediaRecorder.reset();
                     mediaRecorder.release();

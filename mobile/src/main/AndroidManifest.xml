@@ -35,13 +35,16 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".ViewRecordingsActivity">
+        <activity
+            android:name=".ViewRecordingsActivity"
+            android:launchMode="singleInstance">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
         <activity
             android:name=".SettingsActivity"
+            android:launchMode="singleInstance"
             android:label="@string/title_activity_settings">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
