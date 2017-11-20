@@ -7,6 +7,8 @@ import android.hardware.Camera;
 import android.net.Uri;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.os.EnvironmentCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -18,14 +20,23 @@ import java.util.List;
  */
 
 public final class Util {
-    private static String VIDEOS_DIRECTORY_NAME = "OpenDashCam";
-    private static String VIDEOS_DIRECTORY_PATH = Environment.getExternalStorageDirectory()+"/"+VIDEOS_DIRECTORY_NAME+"/";
-    private static int QUOTA = 750; // megabytes
+    private static int QUOTA = 1000; // megabytes
     private static int QUOTA_WARNING_THRESHOLD = 200; // megabytes
     private static int MAX_DURATION = 45000; // 45 seconds
 
-    public static String getVideosDirectoryPath() {
-        return VIDEOS_DIRECTORY_PATH;
+    public static File getVideosDirectoryPath() {
+        File appVideosFolder = getAppPrivateVideosFolder(OpenDashApp.getAppContext());
+
+        if (appVideosFolder != null) {
+            //create app-private folder if not exists
+            if (!appVideosFolder.exists()) appVideosFolder.mkdir();
+            return appVideosFolder;
+        } else {
+            //use default folder
+            appVideosFolder = new File(Environment.getExternalStorageDirectory() + "/OpenDashCam/");
+            if (!appVideosFolder.exists()) appVideosFolder.mkdir();
+            return appVideosFolder;
+        }
     }
 
     public static int getQuota() {
@@ -107,19 +118,22 @@ public final class Util {
      * Get available space on the device
      * @return
      */
-    public static long getFreeSpaceExternalStorage() {
-        File externalStorageDir = Environment.getExternalStorageDirectory();
-        long free = externalStorageDir.getFreeSpace() / 1024 / 1024;
-        return free;
+    public static long getFreeSpaceExternalStorage(File storagePath) {
+        if (storagePath == null || !storagePath.isDirectory()) return 0;
+        return storagePath.getFreeSpace() / 1024 / 1024;
     }
 
     /**
      * Delete all recordings created by the app
      */
     public static void deleteRecordings(Context context) {
-        File recordings_directory = new File(VIDEOS_DIRECTORY_PATH);
-        for (File fileInDirectory : recordings_directory.listFiles()) {
+        File recordingsDirectory = getVideosDirectoryPath();
+
+        //TODO: move it to AsyncTask
+        for (File fileInDirectory : recordingsDirectory.listFiles()) {
             fileInDirectory.delete();
+            // TODO: 20.11.17 remove items from SQLite database
+
             // Let MediaStore Content Provider know about the deleted file
             context.getApplicationContext().sendBroadcast(
                     new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(fileInDirectory))
@@ -192,4 +206,55 @@ public final class Util {
 
         return optimalSize;
     }
+
+    /**
+     * Get path to app-private folder (Android/data/[app name]/files)
+     *
+     * @param context Context
+     * @return Folder
+     */
+    private static File getAppPrivateVideosFolder(Context context) {
+        try {
+            File[] extAppFolders = ContextCompat.getExternalFilesDirs(context, Environment.DIRECTORY_MOVIES);
+            if (extAppFolders == null) return null;
+
+            for (File file : extAppFolders) {
+                if (file != null) {
+                    //find external app-private folder (emulated - it's internal storage)
+                    if (!file.getAbsolutePath().toLowerCase().contains("emulated") && isStorageMounted(file)) {
+                        return file;
+                    }
+                }
+            }
+
+            //if external storage is not found
+            if (extAppFolders.length > 0) {
+                File appFolder;
+                //get available app-private folder form the list
+                for (int i = extAppFolders.length - 1, j = 0; i > j; i--) {
+                    appFolder = extAppFolders[i];
+                    if (appFolder != null && isStorageMounted(appFolder)) {
+                        return appFolder;
+                    }
+                }
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            Log.e(Util.class.getSimpleName(), "getAppPrivateVideosFolder: Exception - " + e.getLocalizedMessage(), e);
+        }
+        return null;
+    }
+
+    /**
+     * Check if storage mounted and has read/write access.
+     *
+     * @param storagePath Storage path
+     * @return True - can write data
+     */
+    private static boolean isStorageMounted(File storagePath) {
+        String storageState = EnvironmentCompat.getStorageState(storagePath);
+        return storageState.equals(Environment.MEDIA_MOUNTED);
+    }
+
 }
