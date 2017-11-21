@@ -9,6 +9,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 
 import com.opendashcam.BackgroundVideoRecorder;
 import com.opendashcam.R;
@@ -86,6 +88,7 @@ public class Widget {
         View recView;
         View settingsView;
         View stopAndQuitView;
+        View layoutMenu;
         boolean areSecondaryWidgetsShown = false;
 
         public WidgetViewHolder(Context context) {
@@ -96,6 +99,8 @@ public class Widget {
             recView = rootView.findViewById(R.id.rec_button);
             settingsView = rootView.findViewById(R.id.settings_button);
             stopAndQuitView = rootView.findViewById(R.id.stop_and_quit_button);
+            layoutMenu = rootView.findViewById(R.id.layout_menu);
+
             viewRecView.setOnClickListener(this);
             saveRecView.setOnClickListener(this);
             recView.setOnClickListener(this);
@@ -176,18 +181,33 @@ public class Widget {
         }
 
         private void showSecondaryWidgets() {
-            viewRecView.setVisibility(View.VISIBLE);
-            saveRecView.setVisibility(View.VISIBLE);
-            settingsView.setVisibility(View.VISIBLE);
-            stopAndQuitView.setVisibility(View.VISIBLE);
+            //show menu layout with animation
+            Animation animation = new ScaleAnimation(
+                    0f, 1f,
+                    0f, 1f,
+                    Animation.RELATIVE_TO_SELF, 0f,
+                    Animation.RELATIVE_TO_SELF, 0.5f
+            );
+            animation.setFillAfter(true);
+            animation.setDuration(200);
+            layoutMenu.startAnimation(animation);
+
             areSecondaryWidgetsShown = true;
         }
 
         private void hideSecondaryWidgets() {
-            viewRecView.setVisibility(View.GONE);
-            saveRecView.setVisibility(View.GONE);
-            settingsView.setVisibility(View.GONE);
-            stopAndQuitView.setVisibility(View.GONE);
+            //hide menu layout with animation
+            Animation animation = new ScaleAnimation(
+                    1f, 0f,
+                    1f, 0f,
+                    Animation.RELATIVE_TO_SELF, 0f,
+                    Animation.RELATIVE_TO_SELF, 0.5f
+            );
+            animation.setFillAfter(true);
+            //on the first start no need to show animation, set 0
+            animation.setDuration(areSecondaryWidgetsShown ? 200 : 0);
+            layoutMenu.startAnimation(animation);
+
             areSecondaryWidgetsShown = false;
         }
     }
