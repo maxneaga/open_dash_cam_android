@@ -5,12 +5,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.os.AsyncTaskCompat;
 import android.support.v4.os.EnvironmentCompat;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.opendashcam.models.Recording;
 
 import java.io.File;
 import java.util.List;
@@ -20,23 +25,27 @@ import java.util.List;
  */
 
 public final class Util {
+    public static final String ACTION_UPDATE_RECORDINGS_LIST = "update.recordings.list";
+
     private static int QUOTA = 1000; // megabytes
     private static int QUOTA_WARNING_THRESHOLD = 200; // megabytes
     private static int MAX_DURATION = 45000; // 45 seconds
 
     public static File getVideosDirectoryPath() {
+        //remove an old directory if exists
+        File oldDirectory = new File(Environment.getExternalStorageDirectory() + "/OpenDashCam/");
+        removeNonEmptyDirectory(oldDirectory);
+
+        //New directory
         File appVideosFolder = getAppPrivateVideosFolder(OpenDashApp.getAppContext());
 
         if (appVideosFolder != null) {
             //create app-private folder if not exists
             if (!appVideosFolder.exists()) appVideosFolder.mkdir();
             return appVideosFolder;
-        } else {
-            //use default folder
-            appVideosFolder = new File(Environment.getExternalStorageDirectory() + "/OpenDashCam/");
-            if (!appVideosFolder.exists()) appVideosFolder.mkdir();
-            return appVideosFolder;
         }
+
+        return null;
     }
 
     public static int getQuota() {
@@ -53,8 +62,9 @@ public final class Util {
 
     /**
      * Displays toast message of LONG length
-     * @param context   Application context
-     * @param msg       Message to display
+     *
+     * @param context Application context
+     * @param msg     Message to display
      */
     public static void showToast(Context context, String msg) {
         Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
@@ -63,27 +73,33 @@ public final class Util {
     /**
      * Display a 9-seconds-long toast.
      * Inspired by https://stackoverflow.com/a/7173248
-     * @param context   Application context
-     * @param msg       Message to display
+     *
+     * @param context Application context
+     * @param msg     Message to display
      */
     public static void showToastLong(Context context, String msg) {
-        final Toast tag = Toast.makeText(context, msg,Toast.LENGTH_SHORT);
+        final Toast tag = Toast.makeText(context, msg, Toast.LENGTH_SHORT);
 
         tag.show();
 
-        new CountDownTimer(9000, 1000)
-        {
+        new CountDownTimer(9000, 1000) {
 
-            public void onTick(long millisUntilFinished) {tag.show();}
-            public void onFinish() {tag.show();}
+            public void onTick(long millisUntilFinished) {
+                tag.show();
+            }
+
+            public void onFinish() {
+                tag.show();
+            }
 
         }.start();
     }
 
     /**
      * Starts new activity to open speicified file
-     * @param file  File to open
-     * @param mimeType  Mime type of the file to open
+     *
+     * @param file     File to open
+     * @param mimeType Mime type of the file to open
      */
     public static void openFile(Context context, Uri file, String mimeType) {
         Intent openFile = new Intent(Intent.ACTION_VIEW);
@@ -99,8 +115,9 @@ public final class Util {
 
     /**
      * Calculates the size of a directory in megabytes
-     * @param file    The directory to calculate the size of
-     * @return          size of a directory in megabytes
+     *
+     * @param file The directory to calculate the size of
+     * @return size of a directory in megabytes
      */
     public static long getFolderSize(File file) {
         long size = 0;
@@ -109,13 +126,14 @@ public final class Util {
                 size += getFolderSize(fileInDirectory);
             }
         } else {
-            size=file.length();
+            size = file.length();
         }
-        return size/1024;
+        return size / 1024;
     }
 
     /**
      * Get available space on the device
+     *
      * @return
      */
     public static long getFreeSpaceExternalStorage(File storagePath) {
@@ -124,22 +142,66 @@ public final class Util {
     }
 
     /**
-     * Delete all recordings created by the app
+     * Delete all recordings from storage and sqlite
+     * <p>
+     * NOTE: called from UI settings (here uses asynctask for background operation)
      */
-    public static void deleteRecordings(Context context) {
-        File recordingsDirectory = getVideosDirectoryPath();
-
-        //TODO: move it to AsyncTask
-        for (File fileInDirectory : recordingsDirectory.listFiles()) {
-            fileInDirectory.delete();
-            // TODO: 20.11.17 remove items from SQLite database
-
-            // Let MediaStore Content Provider know about the deleted file
-            context.getApplicationContext().sendBroadcast(
-                    new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(fileInDirectory))
-            );
-        }
+    public static void deleteRecordings() {
+        AsyncTaskCompat.executeParallel(new DeleteRecordingsTask());
     }
+
+    /**
+     * Star/unstar recording
+     * <p>
+     * NOTE: called from UI (uses asynctasks)
+     *
+     * @param recording
+     */
+    public static void updateStar(Recording recording) {
+        AsyncTaskCompat.executeParallel(new UpdateStarTask(recording));
+    }
+
+    /**
+     * Delete single recording from storage and SQLite
+     * <p>
+     * NOTE: called from background thread (BackgroundVideoRecorder)
+     *
+     * @param recording Recording
+     */
+    public static void deleteSingleRecording(Recording recording) {
+        if (recording == null) return;
+        //delete from storage
+        new File(recording.getFilePath()).delete();
+
+        //delete from db
+        DBHelper.getInstance(OpenDashApp.getAppContext()).deleteRecording(
+                new Recording(recording.getFilePath())
+        );
+
+        //broadcast for updating videos list in UI
+        LocalBroadcastManager.getInstance(OpenDashApp.getAppContext()).sendBroadcast(
+                new Intent(ACTION_UPDATE_RECORDINGS_LIST)
+        );
+    }
+
+    /**
+     * Insert new recording to SQLite
+     * <p>
+     * NOTE: called from background thread (BackgroundVideoRecorder)
+     *
+     * @param recording Recording
+     */
+    public static void insertNewRecording(Recording recording) {
+        if (recording == null) return;
+        DBHelper.getInstance(OpenDashApp.getAppContext()).insertNewRecording(recording);
+
+        //broadcast for updating videos list in UI
+        LocalBroadcastManager.getInstance(OpenDashApp.getAppContext()).sendBroadcast(
+                new Intent(ACTION_UPDATE_RECORDINGS_LIST)
+        );
+    }
+
+
 
     /**
      * Iterate over supported camera video sizes to see which one best fits the
@@ -231,7 +293,7 @@ public final class Util {
             if (extAppFolders.length > 0) {
                 File appFolder;
                 //get available app-private folder form the list
-                for (int i = extAppFolders.length - 1, j = 0; i > j; i--) {
+                for (int i = extAppFolders.length - 1, j = 0; i >= j; i--) {
                     appFolder = extAppFolders[i];
                     if (appFolder != null && isStorageMounted(appFolder)) {
                         return appFolder;
@@ -255,6 +317,86 @@ public final class Util {
     private static boolean isStorageMounted(File storagePath) {
         String storageState = EnvironmentCompat.getStorageState(storagePath);
         return storageState.equals(Environment.MEDIA_MOUNTED);
+    }
+
+    /**
+     * Remove non-empty directory
+     *
+     * @param path Directory path
+     * @return True - Removed
+     */
+    private static boolean removeNonEmptyDirectory(File path) {
+        if (path.exists()) {
+            for (File file : path.listFiles()) {
+                if (file.isDirectory()) {
+                    removeNonEmptyDirectory(file);
+                } else {
+                    file.delete();
+                }
+            }
+        }
+        return path.delete();
+    }
+
+
+    /**
+     * AsyncTask for delete recordings from storage and SQLite
+     */
+    private static class DeleteRecordingsTask extends AsyncTask<Void, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            File recordingsDirectory = getVideosDirectoryPath();
+            //remove items from SQLite database
+            boolean result = DBHelper.getInstance(OpenDashApp.getAppContext()).deleteAllRecordings();
+
+            if (result) {
+                //remove files from storage
+                for (File fileInDirectory : recordingsDirectory.listFiles()) {
+                    fileInDirectory.delete();
+                }
+            }
+
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if (aBoolean) {
+                Context context = OpenDashApp.getAppContext();
+                Util.showToastLong(
+                        context,
+                        context.getResources().getString(R.string.pref_delete_recordings_confirmation)
+                );
+            }
+        }
+    }
+
+    /**
+     * AsyncTask for star/unstar
+     */
+    private static class UpdateStarTask extends AsyncTask<Void, Void, Void> {
+        private Recording mRecording;
+
+        UpdateStarTask(Recording recording) {
+            mRecording = recording;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            DBHelper dbHelper = DBHelper.getInstance(OpenDashApp.getAppContext());
+            //insert or delete star
+            dbHelper.updateStar(mRecording);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            //broadcast for updating videos list in UI
+            LocalBroadcastManager.getInstance(OpenDashApp.getAppContext()).sendBroadcast(
+                    new Intent(Util.ACTION_UPDATE_RECORDINGS_LIST)
+            );
+        }
     }
 
 }

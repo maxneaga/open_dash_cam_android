@@ -175,6 +175,8 @@ public class MainActivity extends Activity {
 
     private boolean isEnoughStorage(){
         File videosFolder = Util.getVideosDirectoryPath();
+        if (videosFolder == null) return false;
+
         long appVideosFolderSize = Util.getFolderSize(videosFolder);
         long storageFreeSize = Util.getFreeSpaceExternalStorage(videosFolder);
         //check enough space

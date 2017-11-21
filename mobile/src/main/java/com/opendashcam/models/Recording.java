@@ -1,12 +1,10 @@
 package com.opendashcam.models;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
+import android.text.TextUtils;
 
-import com.opendashcam.DBContract;
 import com.opendashcam.DBHelper;
+import com.opendashcam.OpenDashApp;
+import com.opendashcam.Util;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -17,39 +15,45 @@ import java.util.Date;
  */
 
 public class Recording {
-    private String id;
+    private int id;
     private String filePath;
     private String filename;
     private String dateSaved;
     private String timeSaved;
-    //    private Bitmap thumbnail;
-    private boolean starred;
     private DBHelper dbHelper;
 
     private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d");
     private static SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
 
-    private void init(Context context) {
-        // Get dates for display
-        getDatesFromFile();
-
-        // Check if starred
-        starred = isStarred(context);
-    }
-
-    public Recording(Context context, int id, String filePath) {
-        dbHelper = DBHelper.getInstance(context);
-        this.id = Integer.toString(id);
+    /**
+     * Constructor for selecting rows from SQLite
+     *
+     * @param id       Unique id
+     * @param filePath String
+     */
+    public Recording(int id, String filePath) {
+        dbHelper = DBHelper.getInstance(OpenDashApp.getAppContext());
+        this.id = id;
         this.filePath = filePath;
         this.filename = new File(filePath).getName();
-        init(context);
+        getDatesFromFile();
     }
 
-    //
-    // Getters
-    //
+    /**
+     * Constructor for create a new recording from Video Recorder
+     *
+     * @param filePath String
+     */
+    public Recording(String filePath) {
+        this(-1, filePath);
+    }
+
     public String getFilePath() {
-        return filePath;
+        return !TextUtils.isEmpty(filePath) ? filePath : "";
+    }
+
+    public String getFileName() {
+        return !TextUtils.isEmpty(filename) ? filename : "";
     }
 
     public String getDateSaved() {
@@ -60,71 +64,21 @@ public class Recording {
         return timeSaved;
     }
 
-//    public Bitmap getThumbnail() {
-//        return thumbnail;
-//    }
-
-    public boolean getStarredStatus() {
-        return starred;
-    }
-
-    /**
-     * Check if recording is starred
-     */
-    private boolean isStarred(Context context) {
-        // Get DB helper
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-
-        long numRowsWithFilename = DatabaseUtils.queryNumEntries(
-                db,
-                DBContract.StarredRecording.TABLE_NAME,
-                DBContract.StarredRecording.COLUMN_NAME_FILE + " = ?",
-                new String[]{filename}
-        );
-
-        if (numRowsWithFilename > 0) {
-            return true;
-        } else {
-            return false;
-        }
+    public boolean isStarred() {
+        return dbHelper.isRecordingStarred(this);
     }
 
     /**
      * Checks/unchecks a recording as starred in DB. Intended to be called by
      * OnCheckedChangeListener when video is starred/unstarred by the user.
      *
-     * @param context   Application context
      * @param isChecked Whether or not checkbox was marked as checked
      * @return True when marked as checked in DB, False otherwise
      */
-    public boolean toggleStar(Context context, boolean isChecked) {
-        // Get DB helper
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        // If checked, add to the starred recording table in DB
-        if (isChecked) {
-            // Make sure not yet starred
-            if (!isStarred(context)) {
-                // Prepare for insertion to DB
-                ContentValues values = new ContentValues();
-                values.put(DBContract.StarredRecording.COLUMN_NAME_FILE, filename);
-                // Insert
-                db.insert(DBContract.StarredRecording.TABLE_NAME, null, values);
-
-                starred = true;
-            }
-            return true;
-        } else {
-            // Define "where" DB query
-            String selection = DBContract.StarredRecording.COLUMN_NAME_FILE + " LIKE ?";
-            String[] selectionArgs = {filename};
-
-            starred = false;
-
-            // Delete
-            db.delete(DBContract.StarredRecording.TABLE_NAME, selection, selectionArgs);
-
-            return false;
-        }
+    public boolean toggleStar(boolean isChecked) {
+        //this item will be updated in the UI when asynctask will be finished
+        Util.updateStar(this);
+        return true;
     }
 
     private void getDatesFromFile() {
@@ -139,7 +93,8 @@ public class Recording {
         }
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
+
 }
