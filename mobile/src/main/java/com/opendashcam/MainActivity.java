@@ -19,8 +19,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.opendashcam.Util.getFolderSize;
-import static com.opendashcam.Util.getFreeSpaceExternalStorage;
 
 public class MainActivity extends Activity {
 
@@ -50,7 +48,7 @@ public class MainActivity extends Activity {
 
         if (!isEnoughStorage()) {
             Util.showToastLong(this.getApplicationContext(),
-                    "Not enough storage to run the app (Need " + String.valueOf(Util.getQuota()+250)
+                    "Not enough storage to run the app (Need " + String.valueOf(Util.getQuota())
                     + "MB). Clean up space for recordings.");
         }
         else {
@@ -176,8 +174,13 @@ public class MainActivity extends Activity {
     }
 
     private boolean isEnoughStorage(){
-        long appFolderSie = getFolderSize(new File(Util.getVideosDirectoryPath()));
-        if(getFreeSpaceExternalStorage() + appFolderSie < (Util.getQuota() + 250)){
+        File videosFolder = Util.getVideosDirectoryPath();
+        if (videosFolder == null) return false;
+
+        long appVideosFolderSize = Util.getFolderSize(videosFolder);
+        long storageFreeSize = Util.getFreeSpaceExternalStorage(videosFolder);
+        //check enough space
+        if (storageFreeSize + appVideosFolderSize < (Util.getQuota())) {
             return false;
         }else {
             return true;

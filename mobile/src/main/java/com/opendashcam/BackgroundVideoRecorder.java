@@ -10,7 +10,6 @@ import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -50,6 +49,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     private SharedPreferences settings;
     private SharedPreferences.Editor editor;
     private Handler mainThread = new Handler(Looper.getMainLooper());
+    private File mRecordingsDirectory;
 
     @Override
     public void onCreate() {
@@ -87,6 +87,12 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         // Set shutter sound based on preferences
         disableSound(editor);
 
+        // Create directory for recordings if not exists
+        mRecordingsDirectory = Util.getVideosDirectoryPath();
+        if (!mRecordingsDirectory.isDirectory() || !mRecordingsDirectory.exists()) {
+            mRecordingsDirectory.mkdir();
+        }
+
         //long elapsedTime = System.currentTimeMillis() - startTime;
         //Log.i("DEBUG", "onCreate Time: " + (TimeUnit.MILLISECONDS.convert(elapsedTime, TimeUnit.MILLISECONDS)) + " milliseconds");
     }
@@ -114,12 +120,6 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     }
 
     private void initMediaRecorder(final SurfaceHolder surfaceHolder) {
-        // Create directory for recordings if not exists
-        File RecordingsPath = new File(Util.getVideosDirectoryPath());
-        if (!RecordingsPath.isDirectory()) {
-            RecordingsPath.mkdir();
-        }
-
         rotateRecordings(BackgroundVideoRecorder.this, Util.getQuota());
         camera = Camera.open();
         Camera.Parameters cameraParams = camera != null ? camera.getParameters() : null;
@@ -174,7 +174,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         editor.apply();
 
         // Path to the file with the recording to be created
-        currentVideoFile = Util.getVideosDirectoryPath() +
+        currentVideoFile = mRecordingsDirectory.getAbsolutePath() + File.separator +
                 DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +
                 ".mp4";
 
@@ -193,7 +193,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
             public void onInfo(MediaRecorder mr, int what, int extra) {
                 if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED && null != mediaRecorder) {
                     mediaRecorder.setOnInfoListener(null);
-                    Log.v("VIDEOCAPTURE", "Maximum Duration Reached. Stop recording.");
+                    Log.d("VIDEOCAPTURE", "Maximum Duration Reached. Stop recording.");
                     mediaRecorder.stop();
                     mediaRecorder.reset();
                     mediaRecorder.release();
@@ -203,8 +203,11 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                         camera.release();
                         camera = null;
                     }
-                    // Let MediaStore Content Provider know about the new file
-                    sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(currentVideoFile))));
+
+                    //insert new entry to SQLite
+                    Util.insertNewRecording(
+                            new Recording(currentVideoFile)
+                    );
 
                     surfaceCreated(surfaceHolder);
                 }
@@ -218,7 +221,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         backgroundThread.post(new Runnable() {
             @Override
             public void run() {
-                if (null != mediaRecorder) {
+                if (mediaRecorder != null) {
                     mediaRecorder.stop();
                     mediaRecorder.reset();
                     mediaRecorder.release();
@@ -237,9 +240,10 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                 backgroundThread = null;
                 mainThread = null;
 
-                // Let MediaStore Content Provider know about the new file
-                sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(currentVideoFile))));
-
+                //insert new entry to SQLite
+                Util.insertNewRecording(
+                        new Recording(currentVideoFile)
+                );
 
                 reEnableSound();
             }
@@ -255,22 +259,21 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
      *
      * @param quota Maximum size the recordings directory may reach in megabytes
      */
-    private static void rotateRecordings(Context context, int quota) {
+    private void rotateRecordings(Context context, int quota) {
         long startTime = System.currentTimeMillis();
-        File RecordingsPath = new File(Util.getVideosDirectoryPath());
         // Quota exceeded?
-        while (Util.getFolderSize(RecordingsPath) >= quota) {
+        while (Util.getFolderSize(mRecordingsDirectory) >= quota) {
             File oldestFile = null;
             int starred_videos_total_size = 0;
 
             // Remove the oldest file in the directory
-            for (File fileInDirectory : RecordingsPath.listFiles()) {
+            for (File fileInDirectory : mRecordingsDirectory.listFiles()) {
                 // If this is the first run, assign the first file as the oldest
                 if (oldestFile == null
                         || oldestFile.lastModified() > fileInDirectory.lastModified()) {
                     // Skip starred recordings, we don't want to rotate those
-                    Recording recording = new Recording(context.getApplicationContext(), 0, fileInDirectory.getAbsolutePath());
-                    if (recording.getStarredStatus()) {
+                    Recording recording = new Recording(fileInDirectory.getAbsolutePath());
+                    if (recording.isStarred()) {
                         starred_videos_total_size += fileInDirectory.length() / (1024 * 1024);
                         continue;
                     }
@@ -291,12 +294,11 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                 return;
             }
 
-            oldestFile.delete();
-
-            // Let MediaStore Content Provider know about the deleted file
-            context.sendBroadcast(
-                    new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(oldestFile))
+            //delete recording from storage and sqlite
+            Util.deleteSingleRecording(
+                    new Recording(oldestFile.getAbsolutePath())
             );
+
         }
         long elapsedTime = System.currentTimeMillis() - startTime;
         Log.d("DEBUG", "rotateRecordings Time: " + (TimeUnit.MILLISECONDS.convert(elapsedTime, TimeUnit.MILLISECONDS)) + " milliseconds");

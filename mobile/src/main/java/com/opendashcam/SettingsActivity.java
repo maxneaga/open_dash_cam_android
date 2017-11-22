@@ -141,8 +141,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
-                    Util.deleteRecordings(getActivity());
-                    Util.showToastLong(getActivity(), getString(R.string.pref_delete_recordings_confirmation));
+                    Util.deleteRecordings();
                     return false;
                 }
             });

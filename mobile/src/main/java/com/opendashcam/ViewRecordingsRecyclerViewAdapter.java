@@ -1,8 +1,9 @@
 package com.opendashcam;
 
 import android.content.Context;
-import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,8 +13,9 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.opendashcam.models.Recording;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -33,8 +35,10 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
     private RecordingListener mRecordingsListener;
     private ArrayList<Recording> mRecordingsList = new ArrayList<>();
     private int mWidth, mHeight;
+    private Context mContext;
 
     ViewRecordingsRecyclerViewAdapter(Context context, RecordingListener clickListener) {
+        mContext = context;
         mRecordingsListener = clickListener;
         mWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 150, context.getResources().getDisplayMetrics());
         mHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, context.getResources().getDisplayMetrics());
@@ -58,7 +62,7 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
 
         holder.label.setText(recItem.getDateSaved());
         holder.dateTime.setText(recItem.getTimeSaved());
-        holder.starred.setChecked(recItem.getStarredStatus());
+        holder.starred.setChecked(recItem.isStarred());
 
         //action on item clicked
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -75,19 +79,13 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (buttonView.isPressed()) {
-                    recItem.toggleStar(OpenDashApp.getAppContext(), isChecked);
+                    recItem.toggleStar(isChecked);
                 }
             }
         });
 
-        String sArtworkUri = Uri.withAppendedPath(VideoRequestHandler.THUMBNAIL_IDENTIFIER_URI, String.valueOf(recItem.getId())).toString();
-        Picasso.with(holder.itemView.getContext())
-                .load(sArtworkUri)
-                .resize(mWidth, mHeight)
-                .noFade().centerCrop()
-                .error(R.drawable.quit_widget)
-                .placeholder(R.drawable.ic_videocam_red_128dp)
-                .into(holder.thumbnail);
+        //show thumbnail for video file
+        showVideoThumbnail(holder, recItem.getFilePath());
     }
 
     /**
@@ -113,6 +111,25 @@ public class ViewRecordingsRecyclerViewAdapter extends RecyclerView
     @Override
     public int getItemCount() {
         return mRecordingsList.size();
+    }
+
+    /**
+     * Show image for preview
+     *
+     * @param holder        ViewHolder
+     * @param videoLocalUrl Local video url
+     */
+    private void showVideoThumbnail(@NonNull final RecordingHolder holder, String videoLocalUrl) {
+        if (TextUtils.isEmpty(videoLocalUrl)) return;
+
+        Glide.with(mContext)
+                .load(videoLocalUrl)
+                .dontAnimate()
+                .centerCrop()
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .placeholder(R.drawable.ic_videocam_red_128dp)
+                .override(mWidth, mHeight)
+                .into(holder.thumbnail);
     }
 
     static class RecordingHolder extends RecyclerView.ViewHolder {

@@ -9,6 +9,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.ScaleAnimation;
 
 import com.opendashcam.BackgroundVideoRecorder;
 import com.opendashcam.R;
@@ -62,6 +64,7 @@ public class Widget {
         layoutParams.x = this.x;
         layoutParams.y = this.y;
 
+        windowManager.addView(viewHolder.rootViewMenu, layoutParams);
         windowManager.addView(viewHolder.rootView, layoutParams);
     }
 
@@ -69,7 +72,10 @@ public class Widget {
      * Removes the rootView from screen
      */
     public void hide() {
+        //widget for "rec" button
         windowManager.removeView(viewHolder.rootView);
+        //widget for menu
+        windowManager.removeView(viewHolder.rootViewMenu);
     }
 
     /**
@@ -81,21 +87,27 @@ public class Widget {
 
     private class WidgetViewHolder implements View.OnClickListener {
         View rootView;
+        View rootViewMenu;
         View viewRecView;
         View saveRecView;
         View recView;
         View settingsView;
         View stopAndQuitView;
+        View layoutMenu;
         boolean areSecondaryWidgetsShown = false;
 
-        public WidgetViewHolder(Context context) {
+        WidgetViewHolder(Context context) {
 
             rootView = LayoutInflater.from(context).inflate(R.layout.layout_widgets, null);
-            viewRecView = rootView.findViewById(R.id.view_recordings_button);
-            saveRecView = rootView.findViewById(R.id.save_recording_button);
             recView = rootView.findViewById(R.id.rec_button);
-            settingsView = rootView.findViewById(R.id.settings_button);
-            stopAndQuitView = rootView.findViewById(R.id.stop_and_quit_button);
+
+            rootViewMenu = LayoutInflater.from(context).inflate(R.layout.layout_widget_menu, null);
+            viewRecView = rootViewMenu.findViewById(R.id.view_recordings_button);
+            saveRecView = rootViewMenu.findViewById(R.id.save_recording_button);
+            settingsView = rootViewMenu.findViewById(R.id.settings_button);
+            stopAndQuitView = rootViewMenu.findViewById(R.id.stop_and_quit_button);
+            layoutMenu = rootViewMenu.findViewById(R.id.layout_menu);
+
             viewRecView.setOnClickListener(this);
             saveRecView.setOnClickListener(this);
             recView.setOnClickListener(this);
@@ -127,20 +139,23 @@ public class Widget {
 
                     if (currentVideoRecording != "null") {
                         // star current recording
-                        Recording recording = new Recording(service.getApplicationContext(), 0, currentVideoRecording);
-                        recording.toggleStar(service.getApplicationContext(), true);
+                        Recording recording = new Recording(currentVideoRecording);
+                        recording.toggleStar(true);
                     }
+/*  @dmitriy-chernysh I think this part is no need.
 
                     // Save the oldest (previous) recording
                     String previousVideoRecording = sharedPref.
                             getString(service.getString(R.string.previous_recording_preferences_key),
                                     "null");
 
+
                     if (previousVideoRecording != "null") {
                         // star previous recording
-                        Recording recording = new Recording(service.getApplicationContext(), 0, previousVideoRecording);
-                        recording.toggleStar(service.getApplicationContext(), true);
+                        Recording recording = new Recording( 0, previousVideoRecording);
+                        recording.toggleStar(true);
                     }
+*/
 
                     // Show success message
                     Util.showToastLong(service, service.getString(R.string.save_recording_success_msg));
@@ -173,18 +188,51 @@ public class Widget {
         }
 
         private void showSecondaryWidgets() {
-            viewRecView.setVisibility(View.VISIBLE);
-            saveRecView.setVisibility(View.VISIBLE);
-            settingsView.setVisibility(View.VISIBLE);
-            stopAndQuitView.setVisibility(View.VISIBLE);
+            rootViewMenu.setVisibility(View.VISIBLE);
+
+            //show menu layout with animation
+            Animation animation = new ScaleAnimation(
+                    0f, 1f,
+                    0f, 1f,
+                    Animation.RELATIVE_TO_SELF, 0f,
+                    Animation.RELATIVE_TO_SELF, 0.5f
+            );
+            animation.setFillAfter(true);
+            animation.setDuration(200);
+            layoutMenu.startAnimation(animation);
+
             areSecondaryWidgetsShown = true;
         }
 
         private void hideSecondaryWidgets() {
-            viewRecView.setVisibility(View.GONE);
-            saveRecView.setVisibility(View.GONE);
-            settingsView.setVisibility(View.GONE);
-            stopAndQuitView.setVisibility(View.GONE);
+            //hide menu layout with animation
+            Animation animation = new ScaleAnimation(
+                    1f, 0f,
+                    1f, 0f,
+                    Animation.RELATIVE_TO_SELF, 0f,
+                    Animation.RELATIVE_TO_SELF, 0.5f
+            );
+            //on the first start no need to show animation, set 0
+            animation.setDuration(areSecondaryWidgetsShown ? 200 : 0);
+            animation.setFillAfter(true);
+            animation.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                    //do nothing
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    rootViewMenu.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                    //do nothing
+                }
+            });
+            layoutMenu.startAnimation(animation);
+
             areSecondaryWidgetsShown = false;
         }
     }
