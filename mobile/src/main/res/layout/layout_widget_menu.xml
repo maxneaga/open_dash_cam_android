@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:visibility="gone">
+
+    <LinearLayout
+        android:id="@+id/layout_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|start"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/view_recordings_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/horizontal_widget_distance_large"
+            android:background="@android:color/transparent"
+            android:src="@drawable/view_recordings_widget"/>
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/save_recording_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/horizontal_widget_distance"
+            android:layout_marginTop="@dimen/vertical_widget_distance"
+            android:background="@android:color/transparent"
+            android:src="@drawable/save_recording_widget"/>
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/vertical_widget_distance"
+            android:background="@android:color/transparent"
+            android:src="@drawable/cam_widget"
+            android:visibility="invisible"/>
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/settings_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/horizontal_widget_distance"
+            android:layout_marginTop="@dimen/vertical_widget_distance"
+            android:background="@android:color/transparent"
+            android:src="@drawable/settings_widget"/>
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/stop_and_quit_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/horizontal_widget_distance_large"
+            android:layout_marginTop="@dimen/vertical_widget_distance"
+            android:background="@android:color/transparent"
+            android:src="@drawable/quit_widget"/>
+    </LinearLayout>
+</FrameLayout>

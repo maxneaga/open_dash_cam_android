@@ -64,6 +64,7 @@ public class Widget {
         layoutParams.x = this.x;
         layoutParams.y = this.y;
 
+        windowManager.addView(viewHolder.rootViewMenu, layoutParams);
         windowManager.addView(viewHolder.rootView, layoutParams);
     }
 
@@ -71,7 +72,10 @@ public class Widget {
      * Removes the rootView from screen
      */
     public void hide() {
+        //widget for "rec" button
         windowManager.removeView(viewHolder.rootView);
+        //widget for menu
+        windowManager.removeView(viewHolder.rootViewMenu);
     }
 
     /**
@@ -83,6 +87,7 @@ public class Widget {
 
     private class WidgetViewHolder implements View.OnClickListener {
         View rootView;
+        View rootViewMenu;
         View viewRecView;
         View saveRecView;
         View recView;
@@ -91,15 +96,17 @@ public class Widget {
         View layoutMenu;
         boolean areSecondaryWidgetsShown = false;
 
-        public WidgetViewHolder(Context context) {
+        WidgetViewHolder(Context context) {
 
             rootView = LayoutInflater.from(context).inflate(R.layout.layout_widgets, null);
-            viewRecView = rootView.findViewById(R.id.view_recordings_button);
-            saveRecView = rootView.findViewById(R.id.save_recording_button);
             recView = rootView.findViewById(R.id.rec_button);
-            settingsView = rootView.findViewById(R.id.settings_button);
-            stopAndQuitView = rootView.findViewById(R.id.stop_and_quit_button);
-            layoutMenu = rootView.findViewById(R.id.layout_menu);
+
+            rootViewMenu = LayoutInflater.from(context).inflate(R.layout.layout_widget_menu, null);
+            viewRecView = rootViewMenu.findViewById(R.id.view_recordings_button);
+            saveRecView = rootViewMenu.findViewById(R.id.save_recording_button);
+            settingsView = rootViewMenu.findViewById(R.id.settings_button);
+            stopAndQuitView = rootViewMenu.findViewById(R.id.stop_and_quit_button);
+            layoutMenu = rootViewMenu.findViewById(R.id.layout_menu);
 
             viewRecView.setOnClickListener(this);
             saveRecView.setOnClickListener(this);
@@ -181,6 +188,8 @@ public class Widget {
         }
 
         private void showSecondaryWidgets() {
+            rootViewMenu.setVisibility(View.VISIBLE);
+
             //show menu layout with animation
             Animation animation = new ScaleAnimation(
                     0f, 1f,
@@ -203,9 +212,25 @@ public class Widget {
                     Animation.RELATIVE_TO_SELF, 0f,
                     Animation.RELATIVE_TO_SELF, 0.5f
             );
-            animation.setFillAfter(true);
             //on the first start no need to show animation, set 0
             animation.setDuration(areSecondaryWidgetsShown ? 200 : 0);
+            animation.setFillAfter(true);
+            animation.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                    //do nothing
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    rootViewMenu.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                    //do nothing
+                }
+            });
             layoutMenu.startAnimation(animation);
 
             areSecondaryWidgetsShown = false;
