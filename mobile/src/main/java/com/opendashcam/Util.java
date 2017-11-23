@@ -1,8 +1,10 @@
 package com.opendashcam;
 
+import android.app.Notification;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -26,6 +28,7 @@ import java.util.List;
 
 public final class Util {
     public static final String ACTION_UPDATE_RECORDINGS_LIST = "update.recordings.list";
+    public static final int FOREGROUND_NOTIFICATION_ID = 51288;
 
     private static int QUOTA = 1000; // megabytes
     private static int QUOTA_WARNING_THRESHOLD = 200; // megabytes
@@ -202,7 +205,6 @@ public final class Util {
     }
 
 
-
     /**
      * Iterate over supported camera video sizes to see which one best fits the
      * dimensions of the given view while maintaining the aspect ratio. If none can,
@@ -267,6 +269,20 @@ public final class Util {
         }
 
         return optimalSize;
+    }
+
+    /**
+     * Create notification for status bar
+     *
+     * @param context Context
+     * @return Notification
+     */
+    public static Notification createStatusBarNotification(Context context) {
+        return new Notification.Builder(context)
+                .setContentTitle(context.getResources().getString(R.string.notification_title))
+                .setContentText(context.getResources().getString(R.string.notification_text))
+                .setSmallIcon(R.drawable.ic_videocam_red_128dp)
+                .build();
     }
 
     /**
@@ -362,13 +378,14 @@ public final class Util {
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
-            if (aBoolean) {
-                Context context = OpenDashApp.getAppContext();
-                Util.showToastLong(
-                        context,
-                        context.getResources().getString(R.string.pref_delete_recordings_confirmation)
-                );
-            }
+            Context context = OpenDashApp.getAppContext();
+            Resources res = context.getResources();
+            Util.showToastLong(
+                    context,
+                    aBoolean
+                            ? res.getString(R.string.pref_delete_recordings_confirmation)
+                            : res.getString(R.string.recordings_list_empty_message_title)
+            );
         }
     }
 
