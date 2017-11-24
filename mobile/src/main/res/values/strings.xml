@@ -57,4 +57,7 @@ Starred recordings will not be deleted.</string>
 
     <string name="recordings_list_empty_message_title">No video recordings yet</string>
     <string name="recordings_list_empty_message">New videos get recorded continuously every 45 seconds, so you should see one here soon.</string>
+
+    <string name="notification_title">Open Dash Cam recording</string>
+    <string name="notification_text">Video recording in progress</string>
 </resources>

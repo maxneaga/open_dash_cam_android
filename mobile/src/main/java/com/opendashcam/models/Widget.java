@@ -142,20 +142,17 @@ public class Widget {
                         Recording recording = new Recording(currentVideoRecording);
                         recording.toggleStar(true);
                     }
-/*  @dmitriy-chernysh I think this part is no need.
 
                     // Save the oldest (previous) recording
                     String previousVideoRecording = sharedPref.
                             getString(service.getString(R.string.previous_recording_preferences_key),
                                     "null");
 
-
                     if (previousVideoRecording != "null") {
                         // star previous recording
                         Recording recording = new Recording( 0, previousVideoRecording);
                         recording.toggleStar(true);
                     }
-*/
 
                     // Show success message
                     Util.showToastLong(service, service.getString(R.string.save_recording_success_msg));

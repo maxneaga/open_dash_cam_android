@@ -1,6 +1,5 @@
 package com.opendashcam;
 
-import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -57,13 +56,12 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         thread = new HandlerThread("io_processor_thread");
         thread.start();
         backgroundThread = new Handler(thread.getLooper());
+
         // Start in foreground to avoid unexpected kill
-        Notification notification = new Notification.Builder(this)
-                .setContentTitle("Open Dash Cam recording")
-                .setContentText("Video recording in progress")
-                .setSmallIcon(R.drawable.ic_videocam_red_128dp)
-                .build();
-        startForeground(51288, notification);
+        startForeground(
+                Util.FOREGROUND_NOTIFICATION_ID,
+                Util.createStatusBarNotification(this)
+        );
 
         sharedPref = this.getApplicationContext().getSharedPreferences(
                 getString(R.string.current_recordings_preferences_key),
@@ -112,7 +110,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                     mediaRecorder.start();
                     Log.d("VIDEOCAPTURE", "BackgroundVideoRecorder.run(): start recording");
                 } catch (Exception e) {
-                    Log.w("DEBUG", "mediaRecorder.prepare() threw exception for some reason!", e);
+                    Log.e("VIDEOCAPTURE", "mediaRecorder.prepare() threw exception for some reason!", e);
                 }
             }
         });
@@ -250,7 +248,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         });
 
         windowManager.removeView(surfaceView);
-
+        stopForeground(true);
     }
 
     /**
