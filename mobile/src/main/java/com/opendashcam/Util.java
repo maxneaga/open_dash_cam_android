@@ -14,12 +14,14 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.os.AsyncTaskCompat;
 import android.support.v4.os.EnvironmentCompat;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.opendashcam.models.Recording;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -362,14 +364,22 @@ public final class Util {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
-            File recordingsDirectory = getVideosDirectoryPath();
+            DBHelper dbHelper = DBHelper.getInstance(OpenDashApp.getAppContext());
+
+            //select all saved recordings for removing files from storage
+            ArrayList<Recording> recordingsList = dbHelper.selectAllRecordingsList();
+
             //remove items from SQLite database
-            boolean result = DBHelper.getInstance(OpenDashApp.getAppContext()).deleteAllRecordings();
+            boolean result = dbHelper.deleteAllRecordings();
 
             if (result) {
+                File videoFile;
                 //remove files from storage
-                for (File fileInDirectory : recordingsDirectory.listFiles()) {
-                    fileInDirectory.delete();
+                for (Recording recording : recordingsList) {
+                    videoFile = !TextUtils.isEmpty(recording.getFilePath()) ? new File(recording.getFilePath()) : null;
+                    if (videoFile != null) {
+                        videoFile.delete();
+                    }
                 }
             }
 
