@@ -7,8 +7,8 @@ android {
         applicationId "com.opendashcam"
         minSdkVersion 23
         targetSdkVersion 23
-        versionCode 2
-        versionName "1.0"
+        versionCode 4
+        versionName "4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
