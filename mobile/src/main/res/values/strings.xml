@@ -48,6 +48,9 @@ Starred recordings will not be deleted.</string>
         you start the app
     </string>
 
+    <string name="pref_title_record_audio">Record audio</string>
+    <string name="pref_description_record_audio">Includes audio in the video recordings</string>
+
     <string name="pref_delete_recordings">Delete all recordings</string>
     <string name="pref_description_delete_recordings">Delete all recordings created by Open Dash
         Cam

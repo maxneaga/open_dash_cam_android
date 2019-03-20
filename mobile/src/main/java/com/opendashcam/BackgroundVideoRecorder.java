@@ -157,9 +157,19 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setCamera(camera); // TODO See if we can remove this line. We can't, because media recorder should know what camera object will be used
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+        
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        mediaRecorder.setProfile(camcorderProfile);
+
+        if (settings.getBoolean("record_audio", true)) {
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+            mediaRecorder.setProfile(camcorderProfile);
+        } else {
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            mediaRecorder.setVideoFrameRate(camcorderProfile.videoFrameRate);
+            mediaRecorder.setVideoSize(camcorderProfile.videoFrameWidth, camcorderProfile.videoFrameHeight);
+            mediaRecorder.setVideoEncoder(camcorderProfile.videoCodec);
+        }
+        
         mediaRecorder.setVideoEncodingBitRate(3000000);
         mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
         // Store previous and current recording filenames, so that they may be retrieved by the
