@@ -74,7 +74,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         surfaceView = new SurfaceView(this);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 1, 1,
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT
         );
@@ -121,7 +121,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         rotateRecordings(BackgroundVideoRecorder.this, Util.getQuota());
         camera = Camera.open();
         Camera.Parameters cameraParams = camera != null ? camera.getParameters() : null;
-        camera.unlock();
+        if (camera != null) camera.unlock();
 
         //define video quality
         int videoQuality;
