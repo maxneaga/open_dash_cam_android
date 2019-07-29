@@ -1,6 +1,8 @@
 package com.opendashcam;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -8,8 +10,10 @@ import android.content.res.Resources;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.os.EnvironmentCompat;
@@ -30,6 +34,9 @@ import java.util.List;
 public final class Util {
     public static final String ACTION_UPDATE_RECORDINGS_LIST = "update.recordings.list";
     public static final int FOREGROUND_NOTIFICATION_ID = 51288;
+
+    private static final String NOTIFICATIONS_CHANNEL_ID_MAIN_NOTIFICATIONS = "1001";
+    private static final String NOTIFICATIONS_CHANNEL_NAME_MAIN_NOTIFICATIONS = "Main notifications";
 
     private static int QUOTA = 1000; // megabytes
     private static int QUOTA_WARNING_THRESHOLD = 200; // megabytes
@@ -279,11 +286,30 @@ public final class Util {
      * @return Notification
      */
     public static Notification createStatusBarNotification(Context context) {
-        return new Notification.Builder(context)
+        NotificationManager notificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(
+                context,
+                NOTIFICATIONS_CHANNEL_ID_MAIN_NOTIFICATIONS)
                 .setContentTitle(context.getResources().getString(R.string.notification_title))
                 .setContentText(context.getResources().getString(R.string.notification_text))
                 .setSmallIcon(R.drawable.ic_videocam_red_128dp)
-                .build();
+                .setAutoCancel(false);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && notificationManager != null) {
+            NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATIONS_CHANNEL_ID_MAIN_NOTIFICATIONS,
+                    NOTIFICATIONS_CHANNEL_NAME_MAIN_NOTIFICATIONS,
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            channel.enableVibration(false);
+            channel.setVibrationPattern(null);
+            channel.setSound(null, null);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        return notificationBuilder.build();
     }
 
     /**
