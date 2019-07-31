@@ -342,15 +342,13 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
     private void reEnableSound() {
 //        long startTime = System.currentTimeMillis();
-        if (settings.getBoolean("disable_sound", false)) {
-            // Record system volume before app was started
-            AudioManager audio = (AudioManager) this.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            int volume = sharedPref.getInt(this.getString(R.string.pre_start_volume), 0);
-            // Only make change if not in silent
-            if (volume > 0) {
-                // Set to silent & vibrate
-                audio.setStreamVolume(AudioManager.STREAM_SYSTEM, volume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-            }
+        // Record system volume before app was started
+        AudioManager audio = (AudioManager) this.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        int volume = sharedPref.getInt(this.getString(R.string.pre_start_volume), 0);
+        // Only make change if not in silent
+        if (volume > 0) {
+            // Set to silent & vibrate
+            audio.setStreamVolume(AudioManager.STREAM_SYSTEM, volume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         }
 //        long elapsedTime = System.currentTimeMillis() - startTime;
 //        Log.i("DEBUG", "reEnableSound Time: " + (TimeUnit.MILLISECONDS.convert(elapsedTime, TimeUnit.MILLISECONDS)) + " milliseconds");
