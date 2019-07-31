@@ -225,17 +225,21 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         backgroundThread.post(new Runnable() {
             @Override
             public void run() {
-                if (mediaRecorder != null) {
-                    mediaRecorder.stop();
-                    mediaRecorder.reset();
-                    mediaRecorder.release();
-                    mediaRecorder.setOnInfoListener(null);
-                    mediaRecorder = null;
-                }
-                if (null != camera) {
-                    camera.lock();
-                    camera.release();
-                    camera = null;
+                try {
+                    if (mediaRecorder != null) {
+                        mediaRecorder.stop();
+                        mediaRecorder.reset();
+                        mediaRecorder.release();
+                        mediaRecorder.setOnInfoListener(null);
+                        mediaRecorder = null;
+                    }
+                    if (null != camera) {
+                        camera.lock();
+                        camera.release();
+                        camera = null;
+                    }
+                } catch (RuntimeException e) {
+                    Log.e("DashCam", "BackgroundVideoRecorder.run: RuntimeException - " + e.getLocalizedMessage(), e);
                 }
                 backgroundThread.removeCallbacksAndMessages(null);
                 mainThread.removeCallbacksAndMessages(null);
@@ -310,6 +314,9 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
     /**
      * Disable system sounds if set in preferences
+     *
+     * NOTE: From N onward, volume adjustments that would toggle Do Not Disturb are not allowed unless
+     *              the app has been granted Do Not Disturb Access.
      *
      * @param editor Editor for current recordings preference
      */
