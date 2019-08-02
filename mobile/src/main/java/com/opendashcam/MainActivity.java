@@ -2,6 +2,7 @@ package com.opendashcam;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,8 +24,10 @@ import java.util.List;
 public class MainActivity extends Activity {
 
     public static final int MULTIPLE_PERMISSIONS_RESPONSE_CODE = 10;
+    private static final int CODE_REQUEST_PERMISSION_TO_MUTE_SYSTEM_SOUND = 10001;
+    private static final int CODE_REQUEST_PERMISSION_DRAW_OVER_APPS = 10002;
 
-    String[] permissions= new String[]{
+    String[] permissions = new String[]{
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -33,12 +36,42 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        init();
+    }
 
-        // Check permissions
-        if (!checkDrawPermission()) {
-            finish();
-            return;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case CODE_REQUEST_PERMISSION_TO_MUTE_SYSTEM_SOUND:
+                //if user has not allowed this permission close the app, otherwise continue
+                if (isPermissionToMuteSystemSoundGranted()) {
+                    init();
+                } else {
+                    finish();
+                }
+                break;
+            case CODE_REQUEST_PERMISSION_DRAW_OVER_APPS:
+                //if user has not allowed this permission close the app, otherwise continue
+                if (Settings.canDrawOverlays(this)) {
+                    init();
+                } else {
+                    finish();
+                }
+                break;
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    private void init() {
+        // Check permissions to draw over apps
+        if (!checkDrawPermission()) return;
+
+        //@dmitriy.chernysh:
+        //check permission to mute system audio on Android 7 (AudioManager setStreamVolume)
+        //java.lang.SecurityException: Not allowed to change Do Not Disturb state
+        if (!checkPermissionToMuteSystemSound()) return;
+
         if (checkPermissions()) {
             startApp();
         }
@@ -49,9 +82,8 @@ public class MainActivity extends Activity {
         if (!isEnoughStorage()) {
             Util.showToastLong(this.getApplicationContext(),
                     "Not enough storage to run the app (Need " + String.valueOf(Util.getQuota())
-                    + "MB). Clean up space for recordings.");
-        }
-        else {
+                            + "MB). Clean up space for recordings.");
+        } else {
             // Check if first launch => show tutorial
             // Access shared references file
             SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
@@ -85,7 +117,7 @@ public class MainActivity extends Activity {
             Intent i = new Intent(getApplicationContext(), WidgetService.class);
             startService(i);
         }
-        
+
         // Close the activity, we don't have an app window
         finish();
     }
@@ -98,7 +130,7 @@ public class MainActivity extends Activity {
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package:" + getPackageName()));
                 /** request permission via start activity for result */
-                startActivity(intent);
+                startActivityForResult(intent, CODE_REQUEST_PERMISSION_DRAW_OVER_APPS);
 
                 Toast.makeText(MainActivity.this, "Draw over apps permission needed", Toast.LENGTH_LONG)
                         .show();
@@ -116,11 +148,11 @@ public class MainActivity extends Activity {
     }
 
 
-    private  boolean checkPermissions() {
+    private boolean checkPermissions() {
         int result;
         List<String> listPermissionsNeeded = new ArrayList<>();
-        for (String p:permissions) {
-            result = ActivityCompat.checkSelfPermission(MainActivity.this,p);
+        for (String p : permissions) {
+            result = ActivityCompat.checkSelfPermission(MainActivity.this, p);
             if (result != PackageManager.PERMISSION_GRANTED) {
                 listPermissionsNeeded.add(p);
             }
@@ -128,12 +160,41 @@ public class MainActivity extends Activity {
         if (!listPermissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions(this,
                     listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]),
-                    MULTIPLE_PERMISSIONS_RESPONSE_CODE );
+                    MULTIPLE_PERMISSIONS_RESPONSE_CODE);
             return false;
         }
         return true;
     }
 
+    /**
+     * Check and ask permission to set "Do not Disturb"
+     * Note: it uses in BackgroundVideoRecorder : audio.setStreamVolume()
+     *
+     * @return True - granted
+     */
+    private boolean checkPermissionToMuteSystemSound() {
+
+        if (!isPermissionToMuteSystemSoundGranted()) {
+            Intent intent = new Intent(
+                    android.provider.Settings
+                            .ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
+            startActivityForResult(intent, CODE_REQUEST_PERMISSION_TO_MUTE_SYSTEM_SOUND);
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean isPermissionToMuteSystemSoundGranted() {
+        //Android 7+ needs this permission (but Samsung devices may work without it)
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)) return true;
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notificationManager == null) return true;
+
+        return notificationManager.isNotificationPolicyAccessGranted();
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
@@ -167,7 +228,7 @@ public class MainActivity extends Activity {
             Intent intent = getPackageManager().getLaunchIntentForPackage(googleMapsPackage);
             intent.setAction(Intent.ACTION_VIEW);
             intent.setData(Uri.parse("google.navigation:/?free=1&mode=d&entry=fnls"));
-            startActivity(intent);;
+            startActivity(intent);
         } catch (Exception e) {
             return;
         }

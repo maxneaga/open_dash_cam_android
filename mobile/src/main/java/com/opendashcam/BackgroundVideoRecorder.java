@@ -9,6 +9,7 @@ import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -72,10 +73,15 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         // Create new SurfaceView, set its size to 1x1, move it to the top left corner and set this service as a callback
         windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
         surfaceView = new SurfaceView(this);
+
+        int type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 1, 1,
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                type,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT
         );
         layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
@@ -121,7 +127,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         rotateRecordings(BackgroundVideoRecorder.this, Util.getQuota());
         camera = Camera.open();
         Camera.Parameters cameraParams = camera != null ? camera.getParameters() : null;
-        camera.unlock();
+        if (camera != null) camera.unlock();
 
         //define video quality
         int videoQuality;
@@ -219,17 +225,21 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
         backgroundThread.post(new Runnable() {
             @Override
             public void run() {
-                if (mediaRecorder != null) {
-                    mediaRecorder.stop();
-                    mediaRecorder.reset();
-                    mediaRecorder.release();
-                    mediaRecorder.setOnInfoListener(null);
-                    mediaRecorder = null;
-                }
-                if (null != camera) {
-                    camera.lock();
-                    camera.release();
-                    camera = null;
+                try {
+                    if (mediaRecorder != null) {
+                        mediaRecorder.stop();
+                        mediaRecorder.reset();
+                        mediaRecorder.release();
+                        mediaRecorder.setOnInfoListener(null);
+                        mediaRecorder = null;
+                    }
+                    if (null != camera) {
+                        camera.lock();
+                        camera.release();
+                        camera = null;
+                    }
+                } catch (RuntimeException e) {
+                    Log.e("DashCam", "BackgroundVideoRecorder.run: RuntimeException - " + e.getLocalizedMessage(), e);
                 }
                 backgroundThread.removeCallbacksAndMessages(null);
                 mainThread.removeCallbacksAndMessages(null);
@@ -305,6 +315,9 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     /**
      * Disable system sounds if set in preferences
      *
+     * NOTE: From N onward, volume adjustments that would toggle Do Not Disturb are not allowed unless
+     *              the app has been granted Do Not Disturb Access.
+     *
      * @param editor Editor for current recordings preference
      */
     private void disableSound(SharedPreferences.Editor editor) {
@@ -329,15 +342,13 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
     private void reEnableSound() {
 //        long startTime = System.currentTimeMillis();
-        if (settings.getBoolean("disable_sound", false)) {
-            // Record system volume before app was started
-            AudioManager audio = (AudioManager) this.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            int volume = sharedPref.getInt(this.getString(R.string.pre_start_volume), 0);
-            // Only make change if not in silent
-            if (volume > 0) {
-                // Set to silent & vibrate
-                audio.setStreamVolume(AudioManager.STREAM_SYSTEM, volume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-            }
+        // Record system volume before app was started
+        AudioManager audio = (AudioManager) this.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        int volume = sharedPref.getInt(this.getString(R.string.pre_start_volume), 0);
+        // Only make change if not in silent
+        if (volume > 0) {
+            // Set to silent & vibrate
+            audio.setStreamVolume(AudioManager.STREAM_SYSTEM, volume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         }
 //        long elapsedTime = System.currentTimeMillis() - startTime;
 //        Log.i("DEBUG", "reEnableSound Time: " + (TimeUnit.MILLISECONDS.convert(elapsedTime, TimeUnit.MILLISECONDS)) + " milliseconds");

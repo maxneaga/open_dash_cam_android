@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Handler;
+import android.support.v4.content.FileProvider;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -62,9 +63,17 @@ public class ViewRecordingsPresenter implements IViewRecordings.Presenter {
         Util.showToast(mView.getActivity(), recordingItem.getDateSaved() +
                 " - " +
                 recordingItem.getTimeSaved());
+
+        Uri fileUri = FileProvider.getUriForFile(
+                mView.getActivity(),
+                OpenDashApp.getAppContext()
+                        .getApplicationContext()
+                        .getPackageName() + ".provider", new File(recordingItem.getFilePath()));
+
         Util.openFile(
                 mView.getActivity(),
-                Uri.fromFile(new File(recordingItem.getFilePath())), "video/mp4");
+                fileUri,
+                "video/mp4");
     }
 
     private void stopUpdateList() {
