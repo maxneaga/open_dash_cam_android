@@ -16,11 +16,11 @@ The way application works is the following:
 1. WidgetService and BackgroundVideoRecorder services are started.
 
 ### About BackgroundVideoRecorder service
-This service continuously records video in pieces of specified length in the background, using the rear (primary) camera, and saves them in dedicated application directory. Once the directory size reaches specified quota, the videos get rotated (oldest one gets deleted to create space for a new one).
+This service continuously records video in pieces of specified length in the background, using the rear (primary) camera, and saves them in dedicated application directory. Once the directory size reaches specified quota, the videos get rotated (the oldest one gets deleted to create space for a new one).
 
 When a new recording starts, we save the current and previous recording filenames in the database. We need this so that when users select "Save recording" we will mark the videos as "starred", so that they are not deleted during rotation.
 
-When the video reaches specified length, we let MediaStore Content Provider know about the new file, and repeat the recording process.
+When the video reaches specified length, we let Medone gets deleted toiaStore Content Provider know about the new file, and repeat the recording process.
 
 ### ViewRecordingsActivity
 This is a browser for videos recorded by the app, built as a Recycler View. We get arraylist of recordings by querying MediaStore populating the list with Recording objects.
