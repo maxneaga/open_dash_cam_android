@@ -16,7 +16,7 @@ The way application works is the following:
 1. WidgetService and BackgroundVideoRecorder services are started.
 
 ### About BackgroundVideoRecorder service
-This service continuously records video in pieces of specified length in the background, using the rear (primary) camera, and saves them in dedicated application directory. Once the directory size reaches specified quota, the videos get rotated (oldest one gets deleted to create space for a new one).
+This service continuously records video in pieces of specified length in the background, using the rear (primary) camera, and saves them in dedicated application directory. Once the directory size reaches specified quota, the videos get rotated (the oldest one gets deleted to create space for a new one).
 
 When a new recording starts, we save the current and previous recording filenames in the database. We need this so that when users select "Save recording" we will mark the videos as "starred", so that they are not deleted during rotation.
 
