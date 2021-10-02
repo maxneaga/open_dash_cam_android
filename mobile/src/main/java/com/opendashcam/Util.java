@@ -38,9 +38,9 @@ public final class Util {
     private static final String NOTIFICATIONS_CHANNEL_ID_MAIN_NOTIFICATIONS = "1001";
     private static final String NOTIFICATIONS_CHANNEL_NAME_MAIN_NOTIFICATIONS = "Main notifications";
 
-    private static int QUOTA = 1000; // megabytes
-    private static int QUOTA_WARNING_THRESHOLD = 200; // megabytes
-    private static int MAX_DURATION = 45000; // 45 seconds
+    private static int QUOTA = 3000; // megabytes
+    private static int QUOTA_WARNING_THRESHOLD = 500; // megabytes
+    private static int MAX_DURATION = 600000; // 10 minutes
 
     public static File getVideosDirectoryPath() {
         //remove an old directory if exists
