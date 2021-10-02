@@ -40,7 +40,7 @@ public final class Util {
 
     private static int QUOTA = 1000; // megabytes
     private static int QUOTA_WARNING_THRESHOLD = 200; // megabytes
-    private static int MAX_DURATION = 45000; // 45 seconds
+    private static int MAX_DURATION = 600000; // 10 minutes
 
     public static File getVideosDirectoryPath() {
         //remove an old directory if exists
