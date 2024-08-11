@@ -220,7 +220,7 @@ public class MainActivity extends Activity {
 
     /**
      * Starts Google Maps in driving mode.
-     */
+     **/
     private void launchNavigation() {
         String googleMapsPackage = "com.google.android.apps.maps";
 

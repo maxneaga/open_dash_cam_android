@@ -1,5 +1,6 @@
 package com.opendashcam.models;
 
+import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -14,12 +15,16 @@ import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
 
 import com.opendashcam.BackgroundVideoRecorder;
+import com.opendashcam.MainActivity;
 import com.opendashcam.R;
 import com.opendashcam.SettingsActivity;
 import com.opendashcam.Util;
 import com.opendashcam.ViewRecordingsActivity;
 
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+import static android.support.v4.app.ActivityCompat.finishAffinity;
+
+import java.util.List;
 
 /**
  * Abstract class for all specific rootView classes to extend from
@@ -176,7 +181,21 @@ public class Widget {
                     // Stop video recording service
                     service.stopService(new Intent(service, BackgroundVideoRecorder.class));
                     // Stop the rootView service
-                    service.stopSelf();
+                    Context context = service.getApplicationContext();
+                    //service.stopSelf();
+                    ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+                    List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
+
+                    // Find your app's process ID
+                    for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
+                        if (appProcess.processName.equals(context.getPackageName())) {
+                            android.os.Process.killProcess(appProcess.pid);
+                            break;
+                        }
+                    }
+                    // Optionally, exit the app if needed
+                    rootView.setVisibility(View.GONE);
+                    System.exit(0);
                     break;
             }
         }

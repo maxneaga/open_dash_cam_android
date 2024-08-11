@@ -60,4 +60,6 @@ Starred recordings will not be deleted.</string>
 
     <string name="notification_title">Open Dash Cam recording</string>
     <string name="notification_text">Video recording in progress</string>
+    <string name="current_front_recording_preferences_key" />
+    <string name="current_rear_recording_preferences_key" />
 </resources>
